@@ -1,0 +1,4 @@
+name: LazyLogger
+version: '${version}'
+main: dev.boostio.lazylogger.LazyLogger
+api-version: '1.13'
