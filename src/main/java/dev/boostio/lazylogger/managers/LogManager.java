@@ -15,7 +15,7 @@ public class LogManager {
      * @param oakLogs the list to store the oak logs in.
      * @param visitedBlocks the set to store the visited blocks in.
      */
-    public void findRelatedLogs(Block block, List<Block> oakLogs, Set<Block> visitedBlocks) {
+    public void findRelatedLogs(Block block, List<Block> oakLogs, Set<Block> visitedBlocks, int consecutiveLeaves) {
         BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
 
         for (BlockFace face : faces) {
@@ -26,9 +26,11 @@ public class LogManager {
 
                 if (isLog(relativeBlock.getType())) {
                     oakLogs.add(relativeBlock);
-                    findRelatedLogs(relativeBlock, oakLogs, visitedBlocks);
+                    findRelatedLogs(relativeBlock, oakLogs, visitedBlocks, 0); // Reset the consecutive leaves counter
                 } else if (isLeaf(relativeBlock.getType())) {
-                    findRelatedLogs(relativeBlock, oakLogs, visitedBlocks);
+                    if (consecutiveLeaves < 2) { // Only continue if there are less than 2 consecutive leaves
+                        findRelatedLogs(relativeBlock, oakLogs, visitedBlocks, consecutiveLeaves + 1);
+                    }
                 }
             }
         }
