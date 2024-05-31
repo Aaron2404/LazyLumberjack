@@ -30,10 +30,14 @@ public class AsyncBreakBlock implements Listener {
         if (player.isSneaking() && player.hasPermission("LazyLogger.Use") && logManager.isAxe(mainHandItem) && logManager.isLog(blockType)) {
             List<Block> oakLogs = new ArrayList<>();
             logManager.findRelatedLogs(event.getBlock(), oakLogs, new HashSet<>(), 0, 0);
+            Material logMaterial = oakLogs.get(0).getType();
 
-            for (Block oakLog : oakLogs) {
-                oakLog.breakNaturally();
-            }
+
+            oakLogs.forEach(Block::breakNaturally);
+
+            logManager.findLowestY(oakLogs).stream()
+                    .filter(log -> logManager.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
+                    .forEach(log -> logManager.plantSapling(log, logMaterial));
         }
     }
 }

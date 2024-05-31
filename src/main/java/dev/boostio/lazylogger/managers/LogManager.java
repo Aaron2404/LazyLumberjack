@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +38,52 @@ public class LogManager {
                     }
                 }
             }
+        }
+    }
+
+    public List<Block> findLowestY(List<Block> oakLogs) {
+        int minY = Integer.MAX_VALUE;
+        List<Block> lowestBlocks = new ArrayList<>();
+
+        for (Block block : oakLogs) {
+            int y = block.getLocation().getBlockY();
+            if (y < minY) {
+                minY = y;
+                lowestBlocks.clear(); // Clear the list as we found a new minimum
+                lowestBlocks.add(block);
+            } else if (y == minY) {
+                lowestBlocks.add(block); // Add the block to the list as it shares the minimum Y value
+            }
+        }
+
+        return lowestBlocks;
+    }
+
+    public boolean isDirtOrPodzol(Material material) {
+        return material == Material.DIRT || material == Material.PODZOL;
+    }
+
+    public void plantSapling(Block log, Material logMaterial) {
+        log.setType(this.getSaplingFromLog(logMaterial));
+        log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
+    }
+
+    private Material getSaplingFromLog(Material logType) {
+        switch (logType) {
+            case OAK_LOG:
+                return Material.OAK_SAPLING;
+            case SPRUCE_LOG:
+                return Material.SPRUCE_SAPLING;
+            case BIRCH_LOG:
+                return Material.BIRCH_SAPLING;
+            case JUNGLE_LOG:
+                return Material.JUNGLE_SAPLING;
+            case ACACIA_LOG:
+                return Material.ACACIA_SAPLING;
+            case DARK_OAK_LOG:
+                return Material.DARK_OAK_SAPLING;
+            default:
+                return Material.AIR; // Return air if the log type doesn't have a corresponding sapling
         }
     }
 
