@@ -26,8 +26,8 @@ public final class LazyLogger extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        logManager = new LogManager();
         scheduler = isFolia() ? new FoliaScheduler(this) : new BukkitScheduler(this);
+        logManager = new LogManager(this);
 
         PacketEvents.getAPI().init();
 

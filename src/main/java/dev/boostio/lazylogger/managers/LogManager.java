@@ -1,5 +1,10 @@
 package dev.boostio.lazylogger.managers;
 
+import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
+import dev.boostio.lazylogger.LazyLogger;
+import dev.boostio.lazylogger.schedulers.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -9,6 +14,12 @@ import java.util.List;
 import java.util.Set;
 
 public class LogManager {
+    private final Scheduler scheduler;
+
+    public LogManager(LazyLogger plugin) {
+        this.scheduler = plugin.getScheduler();
+    }
+
     /**
      * Recursively find logs related the given log by checking each side and recursively moving down the blocks.
      *
@@ -59,13 +70,39 @@ public class LogManager {
         return lowestBlocks;
     }
 
-    public boolean isDirtOrPodzol(Material material) {
+    private boolean isDirtOrPodzol(Material material) {
         return material == Material.DIRT || material == Material.PODZOL;
     }
 
-    public void plantSapling(Block log, Material logMaterial) {
+    private void plantSapling(Block log, Material logMaterial) {
         log.setType(this.getSaplingFromLog(logMaterial));
         log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
+    }
+
+    public void breakBlockWithAnimation(User user, Block block, int counter) {
+        scheduler.runTaskDelayed((o) -> {
+            for (byte i = 0; i < 9; i++) {
+                byte finalI = i;
+                scheduler.runTaskDelayed((o1) -> {
+                    scheduler.runAsyncTask((o3) -> {
+                        user.sendPacket(new WrapperPlayServerBlockBreakAnimation(user.getEntityId(), new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
+                    });
+                }, 1L * i);
+            }
+            scheduler.runTaskDelayed((o2) -> {
+                if(this.isLog(block.getType())){
+                    block.breakNaturally();
+                }
+            }, 1L * 8);
+        }, 1L * 8 * counter);
+    }
+
+    public void plantSaplingsAfterDelay(List<Block> oakLogs, Material logMaterial) {
+        scheduler.runTaskDelayed((o) -> {
+            this.findLowestY(oakLogs).stream()
+                    .filter(log -> this.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
+                    .forEach(log -> this.plantSapling(log, logMaterial));
+        }, 1L * 8 * oakLogs.size() + 20L);
     }
 
     private Material getSaplingFromLog(Material logType) {
