@@ -50,32 +50,31 @@ public class AsyncBreakBlock implements Listener {
 
         int counter = 0;
         for (Block block : oakLogs) {
-            if (!logManager.isLog(block.getType())) {
-                continue;
-            }
-
             counter++;
 
             scheduler.runTaskDelayed((o) -> {
                 for (byte i = 0; i < 9; i++) {
                     final byte stage = i;
 
-                    byte finalI = i;
                     scheduler.runTaskDelayed((o1) -> {
                         scheduler.runAsyncTask((o3) -> {
-                            player.sendMessage("Breaking block at stage " + stage);
                             user.sendPacket(new WrapperPlayServerBlockBreakAnimation(player.getEntityId(), new Vector3i(block.getX(), block.getY(), block.getZ()), stage));
                         });
-                    }, i);
-                    scheduler.runTaskDelayed((o2) -> {
-                        block.breakNaturally();
-                    }, i);
+                    }, 2L * i);
                 }
-            }, (long) 8 * counter);
+                scheduler.runTaskDelayed((o2) -> {
+                    if(logManager.isLog(block.getType())){
+                        block.breakNaturally();
+                    }
+                }, 2L * 8);
+            }, 2L * 8 * counter);
         }
 
-        logManager.findLowestY(oakLogs).stream()
-                .filter(log -> logManager.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
-                .forEach(log -> logManager.plantSapling(log, logMaterial));
+
+        scheduler.runTaskDelayed((o) -> {
+            logManager.findLowestY(oakLogs).stream()
+                    .filter(log -> logManager.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
+                    .forEach(log -> logManager.plantSapling(log, logMaterial));
+        }, 2L * 8 * oakLogs.size() + 20L);
     }
 }

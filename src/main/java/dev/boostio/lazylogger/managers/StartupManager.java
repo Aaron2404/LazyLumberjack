@@ -1,7 +1,9 @@
 package dev.boostio.lazylogger.managers;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylogger.LazyLogger;
 import dev.boostio.lazylogger.events.AsyncBreakBlock;
+import dev.boostio.lazylogger.packetlisteners.BlockBreakAnimation;
 
 /**
  * Manages the start-up processes of the plugin, including the registration of commands and events.
@@ -39,6 +41,7 @@ public class StartupManager {
      * Registers events related to the plugin.
      */
     private void registerEvents() {
+        PacketEvents.getAPI().getEventManager().registerListener(new BlockBreakAnimation());
         plugin.getServer().getPluginManager().registerEvents(new AsyncBreakBlock(this.plugin), plugin);
     }
 }
