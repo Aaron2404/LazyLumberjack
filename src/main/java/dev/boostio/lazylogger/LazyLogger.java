@@ -1,9 +1,10 @@
 package dev.boostio.lazylogger;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylogger.managers.LogManager;
 import dev.boostio.lazylogger.managers.StartupManager;
 import lombok.Getter;
-import org.bstats.bukkit.Metrics;
+import io.github.retrooper.packetevents.bstats.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -14,6 +15,8 @@ public final class LazyLogger extends JavaPlugin {
     public void onEnable() {
        logManager = new LogManager();
 
+        PacketEvents.getAPI().init();
+
         new StartupManager(this);
 
        enableBStats();
@@ -21,7 +24,8 @@ public final class LazyLogger extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        PacketEvents.getAPI().terminate();
+        getLogger().info("Plugin has been uninitialized!");
     }
 
     /**

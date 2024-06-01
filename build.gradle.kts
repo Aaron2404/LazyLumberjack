@@ -22,10 +22,9 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.20.6-R0.1-SNAPSHOT")
+    compileOnly("com.github.retrooper.packetevents:spigot:2.3.0")
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("net.kyori:adventure-api:4.17.0")
-    implementation("org.bstats:bstats-bukkit:3.0.2")
 }
 
 tasks {
@@ -42,7 +41,14 @@ tasks {
         minimize()
         archiveFileName.set("${project.name}-${project.version}.jar")
 
-        relocate("org.bstats", "dev.boostio.lazylogger.bstats")
+        relocate(
+            "net.kyori.adventure.text.serializer.gson",
+            "io.github.retrooper.packetevents.adventure.serializer.gson"
+        )
+        relocate(
+            "net.kyori.adventure.text.serializer.legacy",
+            "io.github.retrooper.packetevents.adventure.serializer.legacy"
+        )
     }
 
     // 1.8.8 - 1.16.5 = Java 8
@@ -52,6 +58,9 @@ tasks {
     val version = "1.20.6"
     val javaVersion = 21
 
+    val requiredPlugins = runPaper.downloadPluginsSpec {
+        url("https://ci.codemc.io/job/retrooper/job/packetevents/lastSuccessfulBuild/artifact/spigot/build/libs/packetevents-spigot-2.3.1-SNAPSHOT.jar")
+    }
 
     val jvmArgsExternal = listOf(
             "-Dcom.mojang.eula.agree=true"
@@ -65,6 +74,7 @@ tasks {
             languageVersion.set(JavaLanguageVersion.of(javaVersion))
         })
 
+        downloadPlugins.from(requiredPlugins)
         downloadPlugins {
             url("https://download.luckperms.net/1543/bukkit/loader/LuckPerms-Bukkit-5.4.130.jar")
             url("https://ci.lucko.me/job/spark/410/artifact/spark-bukkit/build/libs/spark-1.10.65-bukkit.jar")
