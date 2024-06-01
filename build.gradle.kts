@@ -1,15 +1,15 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.3"
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.runPaper)
 }
 
 group = "dev.boostio.lazylogger"
 version = "1.0.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
+    targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
     disableAutoTargetJvm()
 }
 
@@ -21,10 +21,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.20.6-R0.1-SNAPSHOT")
-    compileOnly("com.github.retrooper.packetevents:spigot:2.3.0")
-    compileOnly("org.projectlombok:lombok:1.18.30")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly(libs.spigotApi)
+    compileOnly(libs.packetevents)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 }
 
 tasks {
@@ -34,7 +34,7 @@ tasks {
 
     withType<JavaCompile> {
         options.encoding = "UTF-8"
-        options.release = 8
+        options.release.set(8)
     }
 
     shadowJar {
@@ -51,10 +51,6 @@ tasks {
         )
     }
 
-    // 1.8.8 - 1.16.5 = Java 8
-    // 1.17           = Java 16
-    // 1.18 - 1.20.4  = Java 17
-    // 1-20.5+        = Java 21
     val version = "1.20.6"
     val javaVersion = 21
 
@@ -63,7 +59,7 @@ tasks {
     }
 
     val jvmArgsExternal = listOf(
-            "-Dcom.mojang.eula.agree=true"
+        "-Dcom.mojang.eula.agree=true"
     )
 
     runServer {
@@ -83,7 +79,7 @@ tasks {
         jvmArgs = jvmArgsExternal
     }
 
-    runPaper.folia.registerTask() {
+    runPaper.folia.registerTask {
         minecraftVersion(version)
         runDirectory.set(file("server/folia/$version"))
 

@@ -1,0 +1,16 @@
+[versions]
+java = "8"
+lombok = "1.18.30"
+spigotApi = "1.20.6-R0.1-SNAPSHOT"
+packetevents = "2.3.0"
+shadow = "8.1.1"
+runPaper = "2.2.3"
+
+[libraries]
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+spigotApi = { module = "org.spigotmc:spigot-api", version.ref = "spigotApi" }
+packetevents = { module = "com.github.retrooper.packetevents:spigot", version.ref = "packetevents" }
+
+[plugins]
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
