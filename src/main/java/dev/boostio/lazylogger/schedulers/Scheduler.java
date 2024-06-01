@@ -10,5 +10,7 @@ public interface Scheduler {
 
     void runAsyncTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit);
 
+    void runTaskDelayed(Consumer<Object> task, long delay);
+
     void runAsyncTaskAtFixedRate(@NotNull Consumer<Object> task, long delay, long period, @NotNull TimeUnit timeUnit);
 }

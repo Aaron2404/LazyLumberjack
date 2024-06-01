@@ -27,6 +27,11 @@ public final class FoliaScheduler implements Scheduler {
     }
 
     @Override
+    public void runTaskDelayed(Consumer<Object> task, long delay) {
+        Bukkit.getScheduler().runTaskLater(plugin, (o) -> task.accept(null), delay);
+    }
+
+    @Override
     public void runAsyncTaskAtFixedRate(@NotNull Consumer<Object> task, long delay, long period, @NotNull TimeUnit timeUnit) {
         Bukkit.getAsyncScheduler().runAtFixedRate(plugin, (o) -> task.accept(null), delay, period, timeUnit);
     }

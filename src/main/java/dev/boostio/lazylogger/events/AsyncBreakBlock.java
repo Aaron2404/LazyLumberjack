@@ -19,6 +19,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class AsyncBreakBlock implements Listener {
     private final LazyLogger plugin;
@@ -55,16 +56,18 @@ public class AsyncBreakBlock implements Listener {
 
             counter++;
 
-            FoliaScheduler.getRegionScheduler().runDelayed(this.plugin, block.getLocation(), (o) -> {
+            scheduler.runTaskDelayed((o) -> {
                 for (byte i = 0; i < 9; i++) {
                     final byte stage = i;
 
-                    FoliaScheduler.getRegionScheduler().runDelayed(this.plugin, block.getLocation(), (o1) -> {
-                        player.sendMessage("Breaking block at stage " + stage);
-
-                        user.sendPacket(new WrapperPlayServerBlockBreakAnimation(player.getEntityId(), new Vector3i(block.getX(), block.getY(), block.getZ()), stage));
+                    byte finalI = i;
+                    scheduler.runTaskDelayed((o1) -> {
+                        scheduler.runAsyncTask((o3) -> {
+                            player.sendMessage("Breaking block at stage " + stage);
+                            user.sendPacket(new WrapperPlayServerBlockBreakAnimation(player.getEntityId(), new Vector3i(block.getX(), block.getY(), block.getZ()), stage));
+                        });
                     }, i);
-                    FoliaScheduler.getRegionScheduler().runDelayed(this.plugin, block.getLocation(), (o2) -> {
+                    scheduler.runTaskDelayed((o2) -> {
                         block.breakNaturally();
                     }, i);
                 }
