@@ -3,23 +3,37 @@ package dev.boostio.lazylogger;
 import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylogger.managers.LogManager;
 import dev.boostio.lazylogger.managers.StartupManager;
-import lombok.Getter;
+import dev.boostio.lazylogger.schedulers.Scheduler;
+import dev.boostio.lazylogger.schedulers.impl.BukkitScheduler;
+import dev.boostio.lazylogger.schedulers.impl.FoliaScheduler;
 import io.github.retrooper.packetevents.bstats.Metrics;
+import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
 public final class LazyLogger extends JavaPlugin {
     private LogManager logManager;
+    private Scheduler scheduler;
+
+    private static boolean isFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     @Override
     public void onEnable() {
-       logManager = new LogManager();
+        logManager = new LogManager();
+        scheduler = isFolia() ? new FoliaScheduler(this) : new BukkitScheduler(this);
 
         PacketEvents.getAPI().init();
 
         new StartupManager(this);
 
-       enableBStats();
+        enableBStats();
     }
 
     @Override

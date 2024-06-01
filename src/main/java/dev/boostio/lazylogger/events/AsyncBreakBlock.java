@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import dev.boostio.lazylogger.LazyLogger;
 import dev.boostio.lazylogger.managers.LogManager;
+import dev.boostio.lazylogger.schedulers.Scheduler;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -20,12 +21,14 @@ import java.util.HashSet;
 import java.util.List;
 
 public class AsyncBreakBlock implements Listener {
-    private final LogManager logManager;
     private final LazyLogger plugin;
+    private final Scheduler scheduler;
+    private final LogManager logManager;
 
     public AsyncBreakBlock(LazyLogger plugin) {
-        this.logManager = plugin.getLogManager();
         this.plugin = plugin;
+        this.scheduler = plugin.getScheduler();
+        this.logManager = plugin.getLogManager();
     }
 
     @EventHandler
