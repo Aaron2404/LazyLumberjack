@@ -5,41 +5,38 @@ plugins {
 }
 
 group = "dev.boostio.lazylogger"
+description = rootProject.name
 version = "1.0.0"
 
 java {
-    sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
-    targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
     disableAutoTargetJvm()
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.codemc.io/repository/maven-releases/")
-    maven("https://repo.aikar.co/content/groups/aikar/")
+    maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly(libs.spigotApi)
-    compileOnly(libs.packetevents)
+    compileOnly(libs.paper)
+    compileOnly(libs.packetevents.spigot)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }
 
 tasks {
-    build {
-        dependsOn("shadowJar")
-    }
-
-    withType<JavaCompile> {
-        options.encoding = "UTF-8"
-        options.release.set(8)
+    jar {
+        enabled = false
     }
 
     shadowJar {
-        minimize()
         archiveFileName.set("${project.name}-${project.version}.jar")
+        archiveClassifier = null
 
         relocate(
             "net.kyori.adventure.text.serializer.gson",
@@ -49,7 +46,19 @@ tasks {
             "net.kyori.adventure.text.serializer.legacy",
             "io.github.retrooper.packetevents.adventure.serializer.legacy"
         )
+        minimize()
     }
+
+    assemble {
+        dependsOn(shadowJar)
+    }
+
+    withType<JavaCompile> {
+        options.encoding = Charsets.UTF_8.name()
+        options.release.set(8)
+    }
+
+    defaultTasks("build")
 
     val version = "1.20.6"
     val javaVersion = 21
