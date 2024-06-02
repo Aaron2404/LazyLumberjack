@@ -43,12 +43,13 @@ public class AsyncBreakBlock implements Listener {
 
         long delay;
         if(oakLogs.size() > 50) {
-            delay = 12;
-        } else {
             delay = 25;
+        } else {
+            delay = 40;
         }
 
         player.sendMessage(oakLogs.size() + "");
+        player.sendMessage(delay + "");
 
         for (int counter = 0; counter < oakLogs.size(); counter++) {
             Block block = oakLogs.get(counter);
