@@ -12,6 +12,7 @@ import org.bukkit.block.BlockFace;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class LogManager {
     private final Scheduler scheduler;
@@ -79,30 +80,30 @@ public class LogManager {
         log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
     }
 
-    public void breakBlockWithAnimation(User user, Block block, int counter) {
+    public void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
         scheduler.runTaskDelayed((o) -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
                 scheduler.runTaskDelayed((o1) -> {
                     scheduler.runAsyncTask((o3) -> {
-                        user.sendPacket(new WrapperPlayServerBlockBreakAnimation(user.getEntityId(), new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
+                        user.sendPacket(new WrapperPlayServerBlockBreakAnimation(finalI, new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
                     });
-                }, 1L * i);
+                }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
             scheduler.runTaskDelayed((o2) -> {
                 if(this.isLog(block.getType())){
                     block.breakNaturally();
                 }
-            }, 1L * 8);
-        }, 1L * 8 * counter);
+            }, blockBreakAnimationDelay * 8, TimeUnit.MILLISECONDS);
+        }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
     }
 
-    public void plantSaplingsAfterDelay(List<Block> oakLogs, Material logMaterial) {
+    public void plantSaplingsAfterDelay(List<Block> oakLogs, Material logMaterial, long blockBreakAnimationDelay) {
         scheduler.runTaskDelayed((o) -> {
             this.findLowestY(oakLogs).stream()
                     .filter(log -> this.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
                     .forEach(log -> this.plantSapling(log, logMaterial));
-        }, 1L * 8 * oakLogs.size() + 20L);
+        }, blockBreakAnimationDelay  * 8 * oakLogs.size() + 20L, TimeUnit.MILLISECONDS);
     }
 
     private Material getSaplingFromLog(Material logType) {

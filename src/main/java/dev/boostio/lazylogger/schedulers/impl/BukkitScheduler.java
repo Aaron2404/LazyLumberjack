@@ -27,8 +27,8 @@ public final class BukkitScheduler implements Scheduler {
     }
 
     @Override
-    public void runTaskDelayed(Consumer<Object> task, long delay) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> task.accept(null), delay);
+    public void runTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
     @Override
