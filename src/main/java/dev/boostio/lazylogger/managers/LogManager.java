@@ -151,7 +151,8 @@ public class LogManager {
                 || material == Material.BIRCH_LOG
                 || material == Material.JUNGLE_LOG
                 || material == Material.ACACIA_LOG
-                || material == Material.DARK_OAK_LOG;
+                || material == Material.DARK_OAK_LOG
+                || material == Material.CHERRY_LOG;
     }
 
     /**
@@ -166,6 +167,7 @@ public class LogManager {
                 || material == Material.BIRCH_LEAVES
                 || material == Material.JUNGLE_LEAVES
                 || material == Material.ACACIA_LEAVES
-                || material == Material.DARK_OAK_LEAVES;
+                || material == Material.DARK_OAK_LEAVES
+                || material == Material.CHERRY_LEAVES;
     }
 }

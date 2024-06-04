@@ -60,6 +60,7 @@ public class AsyncBreakBlock implements Listener {
 
             for (Block blockWithTheSameY : blocksWithTheSameY) {
                 int finalCounter = counter;
+                // TODO: Add break particle.
                 scheduler.runAsyncTask((o) -> logManager.breakBlockWithAnimation(user, blockWithTheSameY, finalCounter, delay));
             }
         }
