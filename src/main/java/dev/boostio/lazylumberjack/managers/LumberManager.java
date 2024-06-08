@@ -130,8 +130,11 @@ public class LumberManager {
         Map<Integer, List<Block>> logsByYLevel = logs.stream()
                 .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
 
+        List<Integer> sortedYLevels = logsByYLevel.keySet().stream().sorted().collect(Collectors.toList());
+
         int counter = 0;
-        for (List<Block> sameYLevelBlocks : logsByYLevel.values()) {
+        for (Integer yLevel : sortedYLevels) {
+            List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             for (Block block : sameYLevelBlocks) {
                 int finalCounter = counter;
                 scheduler.runAsyncTask(o -> breakBlockWithAnimation(user, block, finalCounter, delay));

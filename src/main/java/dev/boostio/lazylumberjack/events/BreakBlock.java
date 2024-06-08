@@ -37,7 +37,6 @@ public class BreakBlock implements Listener {
         }
 
         Material logMaterial = relatedLogs.get(0).getType();
-        relatedLogs.sort(Comparator.comparingInt(block -> block.getLocation().getBlockY()));
 
         long delay = relatedLogs.size() > 50 ? 35 : 40;
         logManager.processLogs(user, relatedLogs, delay);
