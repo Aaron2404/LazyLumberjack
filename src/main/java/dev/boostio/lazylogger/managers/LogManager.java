@@ -11,8 +11,10 @@ import org.bukkit.block.BlockFace;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class LogManager {
     private final Scheduler scheduler;
@@ -53,7 +55,7 @@ public class LogManager {
         }
     }
 
-    public List<Block> findLowestY(List<Block> oakLogs) {
+    private List<Block> findLowestY(List<Block> oakLogs) {
         int minY = Integer.MAX_VALUE;
         List<Block> lowestBlocks = new ArrayList<>();
 
@@ -80,7 +82,7 @@ public class LogManager {
         log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
     }
 
-    public void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
+    private void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
         scheduler.runTaskDelayed((o) -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
@@ -104,6 +106,20 @@ public class LogManager {
                     .filter(log -> this.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
                     .forEach(log -> this.plantSapling(log, logMaterial));
         }, blockBreakAnimationDelay  * 8 * oakLogs.size() + 20L, TimeUnit.MILLISECONDS);
+    }
+
+    public void processLogs(User user, List<Block> logs, long delay) {
+        Map<Integer, List<Block>> logsByYLevel = logs.stream()
+                .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
+
+        int counter = 0;
+        for (List<Block> sameYLevelBlocks : logsByYLevel.values()) {
+            for (Block block : sameYLevelBlocks) {
+                int finalCounter = counter;
+                scheduler.runAsyncTask((o) -> this.breakBlockWithAnimation(user, block, finalCounter, delay));
+            }
+            counter++;
+        }
     }
 
     private Material getSaplingFromLog(Material logType) {
@@ -161,7 +177,7 @@ public class LogManager {
      * @param material the material to check.
      * @return true if the material is a leaf block, false otherwise.
      */
-    public boolean isLeaf(Material material) {
+    private boolean isLeaf(Material material) {
         return material == Material.OAK_LEAVES
                 || material == Material.SPRUCE_LEAVES
                 || material == Material.BIRCH_LEAVES

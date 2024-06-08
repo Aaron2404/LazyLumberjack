@@ -12,10 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AsyncBreakBlock implements Listener {
@@ -36,35 +33,19 @@ public class AsyncBreakBlock implements Listener {
             return;
         }
 
-        List<Block> oakLogs = new ArrayList<>();
-        logManager.findRelatedLogs(event.getBlock(), oakLogs, new HashSet<>(), 0, 0);
-        Material logMaterial = oakLogs.get(0).getType();
-        oakLogs.sort(Comparator.comparingInt(block -> block.getLocation().getBlockY()));
+        List<Block> relatedLogs = new ArrayList<>();
+        logManager.findRelatedLogs(event.getBlock(), relatedLogs, new HashSet<>(), 0, 0);
 
-        long delay;
-        if(oakLogs.size() > 50) {
-            delay = 25;
-        } else {
-            delay = 40;
+        if (relatedLogs.isEmpty()) {
+            return;
         }
 
-        player.sendMessage(oakLogs.size() + "");
-        player.sendMessage(delay + "");
+        Material logMaterial = relatedLogs.get(0).getType();
+        relatedLogs.sort(Comparator.comparingInt(block -> block.getLocation().getBlockY()));
 
-        for (int counter = 0; counter < oakLogs.size(); counter++) {
-            Block block = oakLogs.get(counter);
+        long delay = relatedLogs.size() > 50 ? 35 : 40;
+        logManager.processLogs(user, relatedLogs, delay);
 
-            List<Block> blocksWithTheSameY = oakLogs.stream()
-                    .filter(filteredBlock -> filteredBlock.getLocation().getBlockY() == block.getY())
-                    .collect(Collectors.toList());
-
-            for (Block blockWithTheSameY : blocksWithTheSameY) {
-                int finalCounter = counter;
-                // TODO: Add break particle.
-                scheduler.runAsyncTask((o) -> logManager.breakBlockWithAnimation(user, blockWithTheSameY, finalCounter, delay));
-            }
-        }
-
-       this.logManager.plantSaplingsAfterDelay(oakLogs, logMaterial, delay);
+        logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
     }
 }
