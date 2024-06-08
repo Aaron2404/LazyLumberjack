@@ -9,10 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -24,90 +21,111 @@ public class LogManager {
     }
 
     /**
-     * Recursively find logs related the given log by checking each side and recursively moving down the blocks.
+     * Recursively find logs related to the given log by checking each side and recursively moving down the blocks.
      *
      * @param block the block to start from.
-     * @param oakLogs the list to store the oak logs in.
+     * @param relatedLogs the list to store the related logs in.
      * @param visitedBlocks the set to store the visited blocks in.
      */
-    public void findRelatedLogs(Block block, List<Block> oakLogs, Set<Block> visitedBlocks, int consecutiveLeaves, int airBlocks) {
+    public void findRelatedLogs(Block block, List<Block> relatedLogs, Set<Block> visitedBlocks, int consecutiveLeaves, int airBlocks) {
         BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
 
         for (BlockFace face : faces) {
             Block relativeBlock = block.getRelative(face);
 
-            if (!visitedBlocks.contains(relativeBlock)) {
-                visitedBlocks.add(relativeBlock);
-
+            if (visitedBlocks.add(relativeBlock)) {
                 if (isLog(relativeBlock.getType())) {
-                        oakLogs.add(relativeBlock);
-                        findRelatedLogs(relativeBlock, oakLogs, visitedBlocks, 0, 0); // Reset the consecutive leaves and air blocks counters
-                } else if (isLeaf(relativeBlock.getType())) {
-                    if (consecutiveLeaves < 2) { // Only continue if there are less than 2 consecutive leaves
-                        findRelatedLogs(relativeBlock, oakLogs, visitedBlocks, consecutiveLeaves + 1, airBlocks);
-                    }
-                } else if (relativeBlock.getType() == Material.AIR) {
-                    if(airBlocks <= 1){
-                        findRelatedLogs(relativeBlock, oakLogs, visitedBlocks, consecutiveLeaves, airBlocks + 1); // Increment the air blocks counter
-                    }
+                    relatedLogs.add(relativeBlock);
+                    findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, 0, 0);
+                } else if (isLeaf(relativeBlock.getType()) && consecutiveLeaves < 2) {
+                    findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves + 1, airBlocks);
+                } else if (relativeBlock.getType() == Material.AIR && airBlocks <= 1) {
+                    findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves, airBlocks + 1);
                 }
             }
         }
     }
 
-    private List<Block> findLowestY(List<Block> oakLogs) {
-        int minY = Integer.MAX_VALUE;
-        List<Block> lowestBlocks = new ArrayList<>();
-
-        for (Block block : oakLogs) {
-            int y = block.getLocation().getBlockY();
-            if (y < minY) {
-                minY = y;
-                lowestBlocks.clear(); // Clear the list as we found a new minimum
-                lowestBlocks.add(block);
-            } else if (y == minY) {
-                lowestBlocks.add(block); // Add the block to the list as it shares the minimum Y value
-            }
-        }
-
-        return lowestBlocks;
+    /**
+     * Finds blocks at the lowest Y level.
+     *
+     * @param logs the list of logs.
+     * @return a list of blocks at the lowest Y level.
+     */
+    private List<Block> findLowestY(List<Block> logs) {
+        int minY = logs.stream().mapToInt(block -> block.getLocation().getBlockY()).min().orElse(Integer.MAX_VALUE);
+        return logs.stream().filter(block -> block.getLocation().getBlockY() == minY).collect(Collectors.toList());
     }
 
+    /**
+     * Check if the material is dirt or podzol.
+     *
+     * @param material the material to check.
+     * @return true if the material is dirt or podzol, false otherwise.
+     */
     private boolean isDirtOrPodzol(Material material) {
         return material == Material.DIRT || material == Material.PODZOL;
     }
 
+    /**
+     * Plants a sapling at the given log's location.
+     *
+     * @param log the log block.
+     * @param logMaterial the material of the log.
+     */
     private void plantSapling(Block log, Material logMaterial) {
-        log.setType(this.getSaplingFromLog(logMaterial));
+        log.setType(getSaplingFromLog(logMaterial));
         log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
     }
 
+    /**
+     * Breaks a block with animation.
+     *
+     * @param user the user.
+     * @param block the block to break.
+     * @param counter the counter for animation timing.
+     * @param blockBreakAnimationDelay the delay between animations.
+     */
     private void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
-        scheduler.runTaskDelayed((o) -> {
+        scheduler.runTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
-                scheduler.runTaskDelayed((o1) -> {
-                    scheduler.runAsyncTask((o3) -> {
+                scheduler.runTaskDelayed(o1 -> {
+                    scheduler.runAsyncTask(o3 -> {
                         user.sendPacket(new WrapperPlayServerBlockBreakAnimation(finalI, new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
                     });
                 }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
-            scheduler.runTaskDelayed((o2) -> {
-                if(this.isLog(block.getType())){
+            scheduler.runTaskDelayed(o2 -> {
+                if (isLog(block.getType())) {
                     block.breakNaturally();
                 }
             }, blockBreakAnimationDelay * 8, TimeUnit.MILLISECONDS);
         }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
     }
 
-    public void plantSaplingsAfterDelay(List<Block> oakLogs, Material logMaterial, long blockBreakAnimationDelay) {
-        scheduler.runTaskDelayed((o) -> {
-            this.findLowestY(oakLogs).stream()
-                    .filter(log -> this.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
-                    .forEach(log -> this.plantSapling(log, logMaterial));
-        }, blockBreakAnimationDelay  * 8 * oakLogs.size() + 20L, TimeUnit.MILLISECONDS);
+    /**
+     * Plants saplings after a delay.
+     *
+     * @param logs the list of logs.
+     * @param logMaterial the material of the logs.
+     * @param blockBreakAnimationDelay the delay between animations.
+     */
+    public void plantSaplingsAfterDelay(List<Block> logs, Material logMaterial, long blockBreakAnimationDelay) {
+        scheduler.runTaskDelayed(o -> {
+            findLowestY(logs).stream()
+                    .filter(log -> isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
+                    .forEach(log -> plantSapling(log, logMaterial));
+        }, blockBreakAnimationDelay * 8 * logs.size() + 20L, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Processes logs by breaking them with animation.
+     *
+     * @param user the user.
+     * @param logs the list of logs.
+     * @param delay the delay between animations.
+     */
     public void processLogs(User user, List<Block> logs, long delay) {
         Map<Integer, List<Block>> logsByYLevel = logs.stream()
                 .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
@@ -116,12 +134,18 @@ public class LogManager {
         for (List<Block> sameYLevelBlocks : logsByYLevel.values()) {
             for (Block block : sameYLevelBlocks) {
                 int finalCounter = counter;
-                scheduler.runAsyncTask((o) -> this.breakBlockWithAnimation(user, block, finalCounter, delay));
+                scheduler.runAsyncTask(o -> breakBlockWithAnimation(user, block, finalCounter, delay));
             }
             counter++;
         }
     }
 
+    /**
+     * Get the corresponding sapling for the given log type.
+     *
+     * @param logType the log type.
+     * @return the corresponding sapling type.
+     */
     private Material getSaplingFromLog(Material logType) {
         switch (logType) {
             case OAK_LOG:
@@ -148,11 +172,7 @@ public class LogManager {
      * @return true if the material is an axe, false otherwise.
      */
     public boolean isAxe(Material material) {
-        return material == Material.WOODEN_AXE
-                || material == Material.STONE_AXE
-                || material == Material.IRON_AXE
-                || material == Material.GOLDEN_AXE
-                || material == Material.DIAMOND_AXE;
+        return EnumSet.of(Material.WOODEN_AXE, Material.STONE_AXE, Material.IRON_AXE, Material.GOLDEN_AXE, Material.DIAMOND_AXE).contains(material);
     }
 
     /**
@@ -162,13 +182,7 @@ public class LogManager {
      * @return true if the material is a log block, false otherwise.
      */
     public boolean isLog(Material material) {
-        return material == Material.OAK_LOG
-                || material == Material.SPRUCE_LOG
-                || material == Material.BIRCH_LOG
-                || material == Material.JUNGLE_LOG
-                || material == Material.ACACIA_LOG
-                || material == Material.DARK_OAK_LOG
-                || material == Material.CHERRY_LOG;
+        return EnumSet.of(Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG, Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG, Material.CHERRY_LOG).contains(material);
     }
 
     /**
@@ -178,12 +192,6 @@ public class LogManager {
      * @return true if the material is a leaf block, false otherwise.
      */
     private boolean isLeaf(Material material) {
-        return material == Material.OAK_LEAVES
-                || material == Material.SPRUCE_LEAVES
-                || material == Material.BIRCH_LEAVES
-                || material == Material.JUNGLE_LEAVES
-                || material == Material.ACACIA_LEAVES
-                || material == Material.DARK_OAK_LEAVES
-                || material == Material.CHERRY_LEAVES;
+        return EnumSet.of(Material.OAK_LEAVES, Material.SPRUCE_LEAVES, Material.BIRCH_LEAVES, Material.JUNGLE_LEAVES, Material.ACACIA_LEAVES, Material.DARK_OAK_LEAVES, Material.CHERRY_LEAVES).contains(material);
     }
 }
