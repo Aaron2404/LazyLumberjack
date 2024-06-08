@@ -1,23 +1,23 @@
-package dev.boostio.lazylogger.managers;
+package dev.boostio.lazylumberjack.managers;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import dev.boostio.lazylogger.LazyLogger;
-import dev.boostio.lazylogger.events.AsyncBreakBlock;
-import dev.boostio.lazylogger.packetlisteners.BlockBreakAnimation;
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.events.BreakBlock;
+import dev.boostio.lazylumberjack.packetlisteners.BlockBreakAnimation;
 
 /**
  * Manages the start-up processes of the plugin, including the registration of commands and events.
  */
 public class StartupManager {
 
-    private final LazyLogger plugin;
+    private final LazyLumberjack plugin;
 
     /**
      * Creates a new StartUpManager instance.
      *
      * @param plugin the instance of the plugin class.
      */
-    public StartupManager(LazyLogger plugin) {
+    public StartupManager(LazyLumberjack plugin) {
         this.plugin = plugin;
 
         load();
@@ -42,6 +42,6 @@ public class StartupManager {
      */
     private void registerEvents() {
         PacketEvents.getAPI().getEventManager().registerListener(new BlockBreakAnimation());
-        plugin.getServer().getPluginManager().registerEvents(new AsyncBreakBlock(this.plugin), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new BreakBlock(this.plugin), plugin);
     }
 }

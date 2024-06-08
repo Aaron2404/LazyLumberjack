@@ -1,4 +1,4 @@
-package dev.boostio.lazylogger.schedulers;
+package dev.boostio.lazylumberjack.schedulers;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LazyLogger"
+rootProject.name = "LazyLumberjack"

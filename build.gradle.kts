@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.runPaper)
 }
 
-group = "dev.boostio.lazylogger"
+group = "dev.boostio.lazylumberjack"
 description = rootProject.name
 version = "1.0.0"
 

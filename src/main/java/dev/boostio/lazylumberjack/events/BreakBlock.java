@@ -1,10 +1,9 @@
-package dev.boostio.lazylogger.events;
+package dev.boostio.lazylumberjack.events;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
-import dev.boostio.lazylogger.LazyLogger;
-import dev.boostio.lazylogger.managers.LogManager;
-import dev.boostio.lazylogger.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.managers.LumberManager;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -13,15 +12,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class AsyncBreakBlock implements Listener {
-    private final LogManager logManager;
-    private final Scheduler scheduler;
+public class BreakBlock implements Listener {
+    private final LumberManager logManager;
 
-    public AsyncBreakBlock(LazyLogger plugin) {
+    public BreakBlock(LazyLumberjack plugin) {
         this.logManager = plugin.getLogManager();
-        this.scheduler = plugin.getScheduler();
     }
 
     @EventHandler
@@ -29,7 +25,7 @@ public class AsyncBreakBlock implements Listener {
         Player player = event.getPlayer();
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
 
-        if (!player.isSneaking() || !player.hasPermission("LazyLogger.Use") || !logManager.isAxe(player.getInventory().getItemInMainHand().getType()) || !logManager.isLog(event.getBlock().getType())) {
+        if (!player.isSneaking() || !player.hasPermission("LazyLumberjack.Use") || !logManager.isAxe(player.getInventory().getItemInMainHand().getType()) || !logManager.isLog(event.getBlock().getType())) {
             return;
         }
 

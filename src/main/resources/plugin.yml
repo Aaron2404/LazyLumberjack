@@ -1,9 +1,9 @@
-name: LazyLogger
+name: LazyLumberjack
 version: '${version}'
-main: dev.boostio.lazylogger.LazyLogger
+main: dev.boostio.lazylumberjack.LazyLumberjack
 api-version: '1.13'
 
 permissions:
-  LazyLogger.Use:
+  LazyLumberjack.Use:
     description: Allows the player to log lazily.
     default: op

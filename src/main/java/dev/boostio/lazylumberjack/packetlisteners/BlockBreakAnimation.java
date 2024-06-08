@@ -1,4 +1,4 @@
-package dev.boostio.lazylogger.packetlisteners;
+package dev.boostio.lazylumberjack.packetlisteners;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;

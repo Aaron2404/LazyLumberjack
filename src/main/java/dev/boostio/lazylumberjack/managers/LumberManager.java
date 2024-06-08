@@ -1,10 +1,10 @@
-package dev.boostio.lazylogger.managers;
+package dev.boostio.lazylumberjack.managers;
 
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
-import dev.boostio.lazylogger.LazyLogger;
-import dev.boostio.lazylogger.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.schedulers.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -13,10 +13,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class LogManager {
+public class LumberManager {
     private final Scheduler scheduler;
 
-    public LogManager(LazyLogger plugin) {
+    public LumberManager(LazyLumberjack plugin) {
         this.scheduler = plugin.getScheduler();
     }
 

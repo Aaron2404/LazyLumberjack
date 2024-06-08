@@ -1,18 +1,18 @@
-package dev.boostio.lazylogger;
+package dev.boostio.lazylumberjack;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import dev.boostio.lazylogger.managers.LogManager;
-import dev.boostio.lazylogger.managers.StartupManager;
-import dev.boostio.lazylogger.schedulers.Scheduler;
-import dev.boostio.lazylogger.schedulers.impl.BukkitScheduler;
-import dev.boostio.lazylogger.schedulers.impl.FoliaScheduler;
+import dev.boostio.lazylumberjack.managers.LumberManager;
+import dev.boostio.lazylumberjack.managers.StartupManager;
+import dev.boostio.lazylumberjack.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.schedulers.impl.BukkitScheduler;
+import dev.boostio.lazylumberjack.schedulers.impl.FoliaScheduler;
 import io.github.retrooper.packetevents.bstats.Metrics;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
-public final class LazyLogger extends JavaPlugin {
-    private LogManager logManager;
+public final class LazyLumberjack extends JavaPlugin {
+    private LumberManager logManager;
     private Scheduler scheduler;
 
     private static boolean isFolia() {
@@ -27,7 +27,7 @@ public final class LazyLogger extends JavaPlugin {
     @Override
     public void onEnable() {
         scheduler = isFolia() ? new FoliaScheduler(this) : new BukkitScheduler(this);
-        logManager = new LogManager(this);
+        logManager = new LumberManager(this);
 
         PacketEvents.getAPI().init();
 

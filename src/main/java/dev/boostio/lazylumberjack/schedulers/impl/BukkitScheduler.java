@@ -1,7 +1,7 @@
-package dev.boostio.lazylogger.schedulers.impl;
+package dev.boostio.lazylumberjack.schedulers.impl;
 
-import dev.boostio.lazylogger.LazyLogger;
-import dev.boostio.lazylogger.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.schedulers.Scheduler;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,9 +10,9 @@ import java.util.function.Consumer;
 
 public final class BukkitScheduler implements Scheduler {
 
-    private final LazyLogger plugin;
+    private final LazyLumberjack plugin;
 
-    public BukkitScheduler(LazyLogger plugin) {
+    public BukkitScheduler(LazyLumberjack plugin) {
         this.plugin = plugin;
     }
 
