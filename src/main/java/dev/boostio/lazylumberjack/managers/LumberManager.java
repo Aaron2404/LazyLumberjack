@@ -1,5 +1,7 @@
 package dev.boostio.lazylumberjack.managers;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
@@ -8,6 +10,7 @@ import dev.boostio.lazylumberjack.schedulers.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -143,6 +146,16 @@ public class LumberManager {
         }
     }
 
+    public Material getItemInMainHand(Player player) {
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+        if(user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)){
+            return player.getInventory().getItemInMainHand().getType();
+        }
+        else{
+            return player.getInventory().getItemInHand().getType();
+        }
+    }
+
     /**
      * Get the corresponding sapling for the given log type.
      *
@@ -175,7 +188,8 @@ public class LumberManager {
      * @return true if the material is an axe, false otherwise.
      */
     public boolean isAxe(Material material) {
-        return EnumSet.of(Material.WOODEN_AXE, Material.STONE_AXE, Material.IRON_AXE, Material.GOLDEN_AXE, Material.DIAMOND_AXE).contains(material);
+        return material.name().contains("AXE");
+        // TODO: Find a better way to check if the material is an axe, which works on every version.
     }
 
     /**
@@ -185,7 +199,8 @@ public class LumberManager {
      * @return true if the material is a log block, false otherwise.
      */
     public boolean isLog(Material material) {
-        return EnumSet.of(Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG, Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG, Material.CHERRY_LOG).contains(material);
+        return material.name().contains("LOG");
+        // TODO: Find a better way to check if the material is an axe, which works on every version.
     }
 
     /**
@@ -195,6 +210,7 @@ public class LumberManager {
      * @return true if the material is a leaf block, false otherwise.
      */
     private boolean isLeaf(Material material) {
-        return EnumSet.of(Material.OAK_LEAVES, Material.SPRUCE_LEAVES, Material.BIRCH_LEAVES, Material.JUNGLE_LEAVES, Material.ACACIA_LEAVES, Material.DARK_OAK_LEAVES, Material.CHERRY_LEAVES).contains(material);
+        return material.name().contains("LEAVES");
+        // TODO: Find a better way to check if the material is an axe, which works on every version.
     }
 }

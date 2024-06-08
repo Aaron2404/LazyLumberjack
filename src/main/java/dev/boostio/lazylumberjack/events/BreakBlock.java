@@ -1,6 +1,7 @@
 package dev.boostio.lazylumberjack.events;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.managers.LumberManager;
@@ -25,7 +26,7 @@ public class BreakBlock implements Listener {
         Player player = event.getPlayer();
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
 
-        if (!player.isSneaking() || !player.hasPermission("LazyLumberjack.Use") || !logManager.isAxe(player.getInventory().getItemInMainHand().getType()) || !logManager.isLog(event.getBlock().getType())) {
+        if (!player.isSneaking() || !player.hasPermission("LazyLumberjack.Use") || !logManager.isAxe(logManager.getItemInMainHand(player)) || !logManager.isLog(event.getBlock().getType())) {
             return;
         }
 
@@ -41,6 +42,8 @@ public class BreakBlock implements Listener {
         long delay = relatedLogs.size() > 50 ? 35 : 40;
         logManager.processLogs(user, relatedLogs, delay);
 
-        logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
+        if(user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
+        }
     }
 }
