@@ -1,12 +1,23 @@
 package dev.boostio.lazylumberjack.services;
 
+import com.github.retrooper.packetevents.protocol.particle.Particle;
+import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
+import com.github.retrooper.packetevents.protocol.particle.data.ParticleItemStackData;
+import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
 import dev.boostio.lazylumberjack.schedulers.Scheduler;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +36,17 @@ public class BlockService {
     public BlockService(Scheduler scheduler, MaterialService materialService) {
         this.scheduler = scheduler;
         this.materialService = materialService;
+    }
+
+    public WrapperPlayServerParticle breakParticle(Location location, BlockData blockData) {
+        ParticleBlockStateData particleBlockStateData = new ParticleBlockStateData(SpigotConversionUtil.fromBukkitBlockData(blockData));
+        return new WrapperPlayServerParticle(
+                new Particle(ParticleTypes.BLOCK, particleBlockStateData),
+                false,
+                new Vector3d(location.getX(), location.getY(), location.getZ()),
+                new Vector3f(),
+                0f, 10
+        );
     }
 
     /**
@@ -105,6 +127,7 @@ public class BlockService {
                 scheduler.runTaskDelayed(o1 -> {
                     scheduler.runAsyncTask(o3 -> {
                         user.sendPacket(new WrapperPlayServerBlockBreakAnimation(finalI, new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
+                        user.sendPacket(breakParticle(block.getLocation(), block.getBlockData()));
                     });
                 }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
