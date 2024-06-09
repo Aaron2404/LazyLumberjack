@@ -56,6 +56,30 @@ public class BlockService {
     }
 
     /**
+     * Processes logs by breaking them with animation.
+     *
+     * @param user the user.
+     * @param logs the list of logs.
+     * @param delay the delay between animations.
+     */
+    public void processLogs(User user, List<Block> logs, long delay) {
+        Map<Integer, List<Block>> logsByYLevel = logs.stream()
+                .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
+
+        List<Integer> sortedYLevels = logsByYLevel.keySet().stream().sorted().collect(Collectors.toList());
+
+        int counter = 0;
+        for (Integer yLevel : sortedYLevels) {
+            List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
+            for (Block block : sameYLevelBlocks) {
+                int finalCounter = counter;
+                scheduler.runAsyncTask(o -> breakBlockWithAnimation(user, block, finalCounter, delay));
+            }
+            counter++;
+        }
+    }
+
+    /**
      * Finds blocks at the lowest Y level.
      *
      * @param logs the list of logs.
