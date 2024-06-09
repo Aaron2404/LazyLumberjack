@@ -43,9 +43,9 @@ public class BlockService {
         return new WrapperPlayServerParticle(
                 new Particle(ParticleTypes.BLOCK, particleBlockStateData),
                 false,
-                new Vector3d(location.getX(), location.getY(), location.getZ()),
-                new Vector3f(),
-                0f, 10
+                new Vector3d(location.getX() + 0.5, location.getY(), location.getZ() + 0.5),
+                new Vector3f(0f, 0f, 0f),
+                0f, 5
         );
     }
 
