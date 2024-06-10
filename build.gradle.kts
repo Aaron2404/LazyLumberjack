@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     compileOnly(libs.paper)
+    compileOnly(libs.packetevents.api)
     compileOnly(libs.packetevents.spigot)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
@@ -60,6 +61,13 @@ tasks {
         dependsOn(shadowJar)
     }
 
+    processResources {
+        inputs.property("version", project.version)
+        filesMatching(listOf("plugin.yml")) {
+            expand("version" to project.version)
+        }
+    }
+
     withType<JavaCompile> {
         options.encoding = Charsets.UTF_8.name()
         options.release.set(8)
@@ -75,7 +83,7 @@ tasks {
     val javaVersion = 21
 
     val requiredPlugins = runPaper.downloadPluginsSpec {
-        url("https://ci.codemc.io/job/retrooper/job/packetevents/lastSuccessfulBuild/artifact/spigot/build/libs/packetevents-spigot-2.3.1-SNAPSHOT.jar")
+        url("https://ci.codemc.io/job/retrooper/job/packetevents/426/artifact/spigot/build/libs/packetevents-spigot-2.3.1-SNAPSHOT.jar")
     }
 
     val jvmArgsExternal = listOf(

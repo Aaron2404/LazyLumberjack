@@ -1,16 +1,27 @@
 package dev.boostio.lazylumberjack.schedulers;
 
-import org.jetbrains.annotations.NotNull;
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.schedulers.impl.BukkitScheduler;
+import dev.boostio.lazylumberjack.schedulers.impl.FoliaScheduler;
 
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+public class Scheduler {
 
-public interface Scheduler {
-    void runAsyncTask(Consumer<Object> task);
+    private final LazyLumberjack plugin;
 
-    void runAsyncTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit);
+    public Scheduler(LazyLumberjack plugin) {
+        this.plugin = plugin;
+    }
 
-    void runTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit);
+    private static boolean isFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
-    void runAsyncTaskAtFixedRate(@NotNull Consumer<Object> task, long delay, long period, @NotNull TimeUnit timeUnit);
+    public IScheduler getScheduler() {
+        return isFolia() ? new FoliaScheduler(plugin) : new BukkitScheduler(plugin);
+    }
 }

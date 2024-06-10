@@ -3,9 +3,8 @@ package dev.boostio.lazylumberjack;
 import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylumberjack.managers.LumberManager;
 import dev.boostio.lazylumberjack.managers.StartupManager;
+import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.schedulers.Scheduler;
-import dev.boostio.lazylumberjack.schedulers.impl.BukkitScheduler;
-import dev.boostio.lazylumberjack.schedulers.impl.FoliaScheduler;
 import io.github.retrooper.packetevents.bstats.Metrics;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,20 +12,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 @Getter
 public final class LazyLumberjack extends JavaPlugin {
     private LumberManager logManager;
-    private Scheduler scheduler;
-
-    private static boolean isFolia() {
-        try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
+    private IScheduler scheduler;
 
     @Override
     public void onEnable() {
-        scheduler = isFolia() ? new FoliaScheduler(this) : new BukkitScheduler(this);
+        scheduler = new Scheduler(this).getScheduler();
         logManager = new LumberManager(this);
 
         PacketEvents.getAPI().init();

@@ -1,12 +1,13 @@
 [versions]
 paper = "1.20.6-R0.1-SNAPSHOT"
-packetevents = "2.3.0"
+packetevents = "2.3.1-SNAPSHOT"
 lombok = "1.18.30"
 shadow = "8.1.1"
 runPaper = "2.3.0"
 
 [libraries]
 paper = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
+packetevents-api = { group = "com.github.retrooper.packetevents", name = "api", version.ref = "packetevents" }
 packetevents-spigot = { group = "com.github.retrooper.packetevents", name = "spigot", version.ref = "packetevents" }
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 

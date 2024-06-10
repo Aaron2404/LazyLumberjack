@@ -1,14 +1,14 @@
 package dev.boostio.lazylumberjack.schedulers.impl;
 
 import dev.boostio.lazylumberjack.LazyLumberjack;
-import dev.boostio.lazylumberjack.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public final class FoliaScheduler implements Scheduler {
+public final class FoliaScheduler implements IScheduler {
 
     private final LazyLumberjack plugin;
 
