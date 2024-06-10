@@ -34,6 +34,13 @@ tasks {
         enabled = false
     }
 
+    processResources {
+        inputs.property("version", project.version)
+        filesMatching("plugin.yml") {
+            expand("version" to project.version)
+        }
+    }
+
     shadowJar {
         archiveFileName.set("${project.name}-${project.version}.jar")
         archiveClassifier = null
