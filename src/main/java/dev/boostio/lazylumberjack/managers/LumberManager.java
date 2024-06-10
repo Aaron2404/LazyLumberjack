@@ -4,7 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
-import dev.boostio.lazylumberjack.schedulers.Scheduler;
+import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.services.BlockService;
 import dev.boostio.lazylumberjack.services.MaterialService;
 import org.bukkit.Material;
@@ -12,10 +12,9 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class LumberManager {
-    private final Scheduler scheduler;
+    private final IScheduler scheduler;
     private final BlockService blockService;
     private final MaterialService materialService;
 
