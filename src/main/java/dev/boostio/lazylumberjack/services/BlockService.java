@@ -124,7 +124,7 @@ public class BlockService {
                 byte finalI = i;
                 scheduler.runTaskDelayed(o1 -> scheduler.runAsyncTask(o2 -> {
                         // TODO: Find a way to create the wrappers only once and reuse them, instead of creating them every time. But also make sure they are thread-safe.
-                        // TODO: This has not yet been implemented because I haven't yet found a way that's faster than just creating them every time.
+                        // TODO: This has not yet been implemented because I haven't yet found a thread-safe way that's actually faster than just creating them every time.
                         user.sendPacket(new WrapperPlayServerBlockBreakAnimation(finalI, new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
                         user.sendPacket(breakParticle(block.getLocation(), block.getBlockData()));
                 }), blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
