@@ -24,7 +24,6 @@ repositories {
 
 dependencies {
     compileOnly(libs.paper)
-    compileOnly(libs.packetevents.api)
     compileOnly(libs.packetevents.spigot)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
