@@ -55,7 +55,7 @@ tasks {
 
     processResources {
         inputs.property("version", project.version)
-        filesMatching(listOf("plugin.yml")) {
+        filesMatching("plugin.yml") {
             expand("version" to project.version)
         }
     }
