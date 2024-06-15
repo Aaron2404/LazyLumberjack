@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
+import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -119,14 +120,26 @@ public class BlockService {
      * @param blockBreakAnimationDelay the delay between animations.
      */
     public void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
+        PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool = new PacketPool<>(() ->
+                new WrapperPlayServerBlockBreakAnimation(0, new Vector3i(block.getX(), block.getY(), block.getZ()), (byte) 0));
+
+        PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
+                breakParticle(block.getLocation(), block.getBlockData()));
+
         scheduler.runTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
                 scheduler.runTaskDelayed(o1 -> scheduler.runAsyncTask(o2 -> {
-                        // TODO: Find a way to create the wrappers only once and reuse them, instead of creating them every time. But also make sure they are thread-safe.
-                        // TODO: This has not yet been implemented because I haven't yet found a thread-safe way that's actually faster than just creating them every time.
-                        user.sendPacket(new WrapperPlayServerBlockBreakAnimation(finalI, new Vector3i(block.getX(), block.getY(), block.getZ()), finalI));
-                        user.sendPacket(breakParticle(block.getLocation(), block.getBlockData()));
+                    WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
+                    WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
+
+                    breakAnimationPacket.setDestroyStage(finalI);
+
+                    user.sendPacket(breakAnimationPacket);
+                    user.sendPacket(breakParticlePacket);
+
+                    animationPacketPool.release(breakAnimationPacket);
+                    particlePacketPool.release(breakParticlePacket);
                 }), blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
             scheduler.runTaskDelayed(o2 -> {
