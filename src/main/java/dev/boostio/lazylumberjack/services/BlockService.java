@@ -18,7 +18,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -29,7 +32,7 @@ public class BlockService {
     /**
      * Constructor for BlockService.
      *
-     * @param scheduler the scheduler to use for delayed tasks.
+     * @param scheduler       the scheduler to use for delayed tasks.
      * @param materialService the material service to use for material-related checks.
      */
     public BlockService(IScheduler scheduler, MaterialService materialService) {
@@ -51,11 +54,11 @@ public class BlockService {
     /**
      * Recursively finds logs related to the given log by checking each side and recursively moving down the blocks.
      *
-     * @param block the block to start from.
-     * @param relatedLogs the list to store the related logs in.
-     * @param visitedBlocks the set to store the visited blocks in.
+     * @param block             the block to start from.
+     * @param relatedLogs       the list to store the related logs in.
+     * @param visitedBlocks     the set to store the visited blocks in.
      * @param consecutiveLeaves the number of consecutive leaves found.
-     * @param airBlocks the number of air blocks found.
+     * @param airBlocks         the number of air blocks found.
      */
     public void findRelatedLogs(Block block, List<Block> relatedLogs, Set<Block> visitedBlocks, int consecutiveLeaves, int airBlocks) {
         BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
@@ -79,8 +82,8 @@ public class BlockService {
     /**
      * Processes logs by breaking them with animation.
      *
-     * @param user the user.
-     * @param logs the list of logs.
+     * @param user  the user.
+     * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
     public void processLogs(User user, List<Block> logs, long delay) {
@@ -113,9 +116,9 @@ public class BlockService {
     /**
      * Breaks a block with animation.
      *
-     * @param user the user.
-     * @param block the block to break.
-     * @param counter the counter for animation timing.
+     * @param user                     the user.
+     * @param block                    the block to break.
+     * @param counter                  the counter for animation timing.
      * @param blockBreakAnimationDelay the delay between animations.
      */
     public void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
@@ -142,12 +145,8 @@ public class BlockService {
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);
 
-                    if(finalI == 8){
-                        scheduler.runTask(o2 -> { // Break block on the main thread after the animation is done
-                            if (materialService.isLog(block.getType())) {
-                                block.breakNaturally();
-                            }
-                        });
+                    if (finalI == 8 && materialService.isLog(block.getType())) {
+                        block.breakNaturally();
                     }
                 }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
@@ -157,8 +156,8 @@ public class BlockService {
     /**
      * Plants saplings after a delay.
      *
-     * @param logs the list of logs.
-     * @param logMaterial the material of the logs.
+     * @param logs                     the list of logs.
+     * @param logMaterial              the material of the logs.
      * @param blockBreakAnimationDelay the delay between animations.
      */
     public void plantSaplingsAfterDelay(List<Block> logs, Material logMaterial, long blockBreakAnimationDelay) {
