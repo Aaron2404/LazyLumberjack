@@ -9,6 +9,8 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
+import dev.boostio.lazylumberjack.enums.ConfigOption;
+import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
@@ -20,7 +22,6 @@ import org.bukkit.block.data.BlockData;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -28,6 +29,16 @@ import java.util.stream.Collectors;
 public class BlockService {
     private final IScheduler scheduler;
     private final MaterialService materialService;
+    private final ConfigManager configManager;
+
+    private final int consecutiveLeafRange;
+    private final int consecutiveAirRange;
+    private final boolean slowBreakEnabled;
+    private final boolean particleEnabled;
+    private final int particleAmount;
+    private final double particleOffsetX;
+    private final double particleOffsetY;
+    private final double particleOffsetZ;
 
     /**
      * Constructor for BlockService.
@@ -35,9 +46,19 @@ public class BlockService {
      * @param scheduler       the scheduler to use for delayed tasks.
      * @param materialService the material service to use for material-related checks.
      */
-    public BlockService(IScheduler scheduler, MaterialService materialService) {
+    public BlockService(ConfigManager configManager, IScheduler scheduler, MaterialService materialService) {
+        this.configManager = configManager;
         this.scheduler = scheduler;
         this.materialService = materialService;
+
+        consecutiveLeafRange = configManager.getConfigurationOption(ConfigOption.DETECTION_LEAF_RANGE);
+        consecutiveAirRange = configManager.getConfigurationOption(ConfigOption.DETECTION_AIR_RANGE);
+        slowBreakEnabled = configManager.getBoolean(ConfigOption.SLOW_BREAK_ENABLED);
+        particleEnabled = configManager.getBoolean(ConfigOption.PARTICLES_ENABLED);
+        particleAmount = configManager.getConfigurationOption(ConfigOption.PARTICLES_AMOUNT);
+        particleOffsetX = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_X);
+        particleOffsetY = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_Y);
+        particleOffsetZ = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_Z);
     }
 
     public WrapperPlayServerParticle breakParticle(Location location, BlockData blockData) {
@@ -46,8 +67,8 @@ public class BlockService {
                 new Particle(ParticleTypes.BLOCK, particleBlockStateData),
                 false,
                 new Vector3d(location.getX() + 0.5, location.getY(), location.getZ() + 0.5),
-                new Vector3f(0f, 0f, 0f),
-                0f, 5
+                new Vector3f((float) particleOffsetX, (float) particleOffsetY, (float) particleOffsetZ),
+                0f, particleAmount
         );
     }
 
@@ -70,9 +91,9 @@ public class BlockService {
                 if (materialService.isLog(relativeBlock.getType())) {
                     relatedLogs.add(relativeBlock);
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, 0, 0);
-                } else if (materialService.isLeaf(relativeBlock.getType()) && consecutiveLeaves < 2) {
+                } else if (materialService.isLeaf(relativeBlock.getType()) && consecutiveLeaves < consecutiveLeafRange) {
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves + 1, airBlocks);
-                } else if (relativeBlock.getType() == Material.AIR && airBlocks <= 1) {
+                } else if (relativeBlock.getType() == Material.AIR && airBlocks <= consecutiveAirRange) {
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves, airBlocks + 1);
                 }
             }
@@ -96,7 +117,11 @@ public class BlockService {
         for (Integer yLevel : sortedYLevels) {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             int finalCounter = counter;
-            scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(user, block, finalCounter, delay)));
+            if (slowBreakEnabled) {
+                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(user, block, finalCounter, delay)));
+            } else {
+                sameYLevelBlocks.forEach(Block::breakNaturally);
+            }
 
             counter++;
         }
@@ -139,7 +164,11 @@ public class BlockService {
                     breakAnimationPacket.setDestroyStage(finalI);
 
                     user.sendPacket(breakAnimationPacket);
-                    user.sendPacket(breakParticlePacket);
+
+                    // TODO: Fix a lot of things being created for the particle, even if it is disabled.
+                    if (particleEnabled) {
+                        user.sendPacket(breakParticlePacket);
+                    }
 
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);

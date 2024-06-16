@@ -1,6 +1,7 @@
 package dev.boostio.lazylumberjack;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.managers.LumberManager;
 import dev.boostio.lazylumberjack.managers.StartupManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
@@ -12,10 +13,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 @Getter
 public final class LazyLumberjack extends JavaPlugin {
     private LumberManager logManager;
+    private ConfigManager configManager;
     private IScheduler scheduler;
 
     @Override
     public void onEnable() {
+        configManager = new ConfigManager(this);
         scheduler = new Scheduler(this).getScheduler();
         logManager = new LumberManager(this);
 

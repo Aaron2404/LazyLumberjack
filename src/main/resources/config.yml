@@ -1,0 +1,47 @@
+#  _                    _                    _               _            _
+# | |    __ _ _____   _| |   _   _ _ __ ___ | |__   ___ _ __(_) __ _  ___| | __
+# | |   / _` |_  / | | | |  | | | | '_ ` _ \| '_ \ / _ \ '__| |/ _` |/ __| |/ /
+# | |__| (_| |/ /| |_| | |__| |_| | | | | | | |_) |  __/ |  | | (_| | (__|   <
+# |_____\__,_/___|\__, |_____\__,_|_| |_| |_|_.__/ \___|_| _/ |\__,_|\___|_|\_\
+#                 |___/                                   |__/
+
+# Detections which are used to detect the blocks to remove.
+detection:
+  # The amount of leaf blocks that can be in between the logs and still be considered part of the tree
+  leaf-range: 2
+
+  # The amount of air blocks that can be in between the leaves and still be considered part of the tree
+  air-range: 1
+
+animations:
+  slow-break:
+    # Whether the slow break animation is enabled, this will visually break the logs one by one.
+    enabled: true
+
+    particles:
+      # Whether the particles are enabled, this will spawn particles when breaking logs.
+      enabled: true
+
+      # The amount of particles that will be spawned when breaking a log.
+      amount: 5
+
+      # The offset of the particles, this will offset the particles from the center of the block.
+      offset:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+
+    # The delay is calculated using the formula: baseDelay / (1 + size) ^ speedFactor
+    delay:
+      # The amount of ms between each break cycle. Lower values will make the animation faster
+      base-delay: 40
+
+      # The speed factor of the animation. Lower values will make the animation faster.
+      # This is used to change the speed based on the amount of logs, i.e. the more logs the faster the animation.
+      speed-factor: 0.1
+
+helpers:
+  # Whether saplings should be placed when breaking a tree.
+  # Currently only works with 1.13 and above.
+  place-sapling: true
+

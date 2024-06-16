@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.enums.ConfigOption;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.services.BlockService;
 import dev.boostio.lazylumberjack.services.MaterialService;
@@ -11,16 +12,18 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 public class LumberManager {
     private final IScheduler scheduler;
     private final BlockService blockService;
     private final MaterialService materialService;
+    private final ConfigManager configManager;
 
-    double baseDelay = 40; // Base delay in milliseconds
-    double speedFactor = 0.1; // Speed factor for gradual scaling
-
+    private final int baseDelay; // Base delay in milliseconds
+    private final double speedFactor;
+    ; // Speed factor for gradual scaling
 
     /**
      * Constructor for LumberManager.
@@ -30,7 +33,11 @@ public class LumberManager {
     public LumberManager(LazyLumberjack plugin) {
         this.scheduler = plugin.getScheduler();
         this.materialService = new MaterialService();
-        this.blockService = new BlockService(scheduler, materialService);
+        this.configManager = plugin.getConfigManager();
+        this.blockService = new BlockService(configManager, scheduler, materialService);
+
+        baseDelay = configManager.getConfigurationOption(ConfigOption.SLOW_BREAK_BASE_DELAY);
+        speedFactor = configManager.getConfigurationOption(ConfigOption.SLOW_BREAK_SPEED_FACTOR);
     }
 
     /**

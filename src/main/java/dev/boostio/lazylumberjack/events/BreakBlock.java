@@ -4,6 +4,8 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.enums.ConfigOption;
+import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.managers.LumberManager;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -12,13 +14,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class BreakBlock implements Listener {
     private final LumberManager logManager;
+    private final ConfigManager configManager;
+    private final boolean plantSaplings;
 
     public BreakBlock(LazyLumberjack plugin) {
         this.logManager = plugin.getLogManager();
+        this.configManager = plugin.getConfigManager();
+        this.plantSaplings = configManager.getBoolean(ConfigOption.SAPLING_PLANTING_ENABLED);
     }
 
     @EventHandler
@@ -42,7 +50,7 @@ public class BreakBlock implements Listener {
         long delay = logManager.calculateDelay(relatedLogs.size());
         logManager.processLogs(user, relatedLogs, delay);
 
-        if(user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && plantSaplings) {
             logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
         }
     }
