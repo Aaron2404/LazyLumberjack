@@ -27,6 +27,11 @@ public final class FoliaScheduler implements IScheduler {
     }
 
     @Override
+    public void runTask(Consumer<Object> task) {
+        Bukkit.getScheduler().runTask(plugin, (o) -> task.accept(null));
+    }
+
+    @Override
     public void runTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit) {
         Bukkit.getScheduler().runTaskLater(plugin, (o) -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }

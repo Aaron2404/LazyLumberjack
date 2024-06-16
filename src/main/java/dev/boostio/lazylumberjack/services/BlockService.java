@@ -129,7 +129,7 @@ public class BlockService {
         scheduler.runTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
-                scheduler.runTaskDelayed(o1 -> scheduler.runAsyncTask(o2 -> {
+                scheduler.runTaskDelayed(do1 -> {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
                     WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
 
@@ -140,13 +140,16 @@ public class BlockService {
 
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);
-                }), blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
+
+                    if(finalI == 8){
+                        scheduler.runTask(o2 -> { // Break block on the main thread after the animation is done
+                            if (materialService.isLog(block.getType())) {
+                                block.breakNaturally();
+                            }
+                        });
+                    }
+                }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
-            scheduler.runTaskDelayed(o2 -> {
-                if (materialService.isLog(block.getType())) {
-                    block.breakNaturally();
-                }
-            }, blockBreakAnimationDelay * 8, TimeUnit.MILLISECONDS);
         }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
     }
 
