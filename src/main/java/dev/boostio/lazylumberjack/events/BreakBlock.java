@@ -39,7 +39,7 @@ public class BreakBlock implements Listener {
 
         Material logMaterial = relatedLogs.get(0).getType();
 
-        long delay = relatedLogs.size() > 50 ? 35 : 40;
+        long delay = logManager.calculateDelay(relatedLogs.size());
         logManager.processLogs(user, relatedLogs, delay);
 
         if(user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {

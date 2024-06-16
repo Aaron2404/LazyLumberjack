@@ -18,6 +18,10 @@ public class LumberManager {
     private final BlockService blockService;
     private final MaterialService materialService;
 
+    double baseDelay = 40; // Base delay in milliseconds
+    double speedFactor = 0.1; // Speed factor for gradual scaling
+
+
     /**
      * Constructor for LumberManager.
      *
@@ -51,6 +55,19 @@ public class LumberManager {
      */
     public void processLogs(User user, List<Block> logs, long delay) {
         blockService.processLogs(user, logs, delay);
+    }
+
+    /**
+     * Calculates the delay for breaking logs based on the size of the tree.
+     * The delay is calculated using the formula: baseDelay / (1 + size) ^ speedFactor
+     * The result is then compared with 1, and the maximum value is returned.
+     * This ensures that the delay is at least 1 millisecond.
+     *
+     * @param size the size of the tree (i.e., the number of logs).
+     * @return the calculated delay in milliseconds.
+     */
+    public long calculateDelay(int size) {
+        return (long) Math.max(baseDelay / Math.pow(1 + size, speedFactor), 1);
     }
 
     /**
