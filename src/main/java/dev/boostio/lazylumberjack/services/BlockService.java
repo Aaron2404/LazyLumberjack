@@ -128,7 +128,6 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block.getLocation(), block.getBlockData()));
 
-        Random random = new Random();
         scheduler.runTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
@@ -136,7 +135,7 @@ public class BlockService {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
                     WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
 
-                    breakAnimationPacket.setEntityId(random.nextInt(Integer.MAX_VALUE));
+                    breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
                     breakAnimationPacket.setDestroyStage(finalI);
 
                     user.sendPacket(breakAnimationPacket);
