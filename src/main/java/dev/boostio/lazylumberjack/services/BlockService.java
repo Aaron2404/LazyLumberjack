@@ -92,10 +92,9 @@ public class BlockService {
         int counter = 0;
         for (Integer yLevel : sortedYLevels) {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
-            for (Block block : sameYLevelBlocks) {
-                int finalCounter = counter;
-                scheduler.runAsyncTask(o -> breakBlockWithAnimation(user, block, finalCounter, delay));
-            }
+            int finalCounter = counter;
+            scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(user, block, finalCounter, delay)));
+
             counter++;
         }
     }
@@ -126,6 +125,7 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block.getLocation(), block.getBlockData()));
 
+        Random random = new Random();
         scheduler.runTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
@@ -133,6 +133,7 @@ public class BlockService {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
                     WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
 
+                    breakAnimationPacket.setEntityId(random.nextInt(Integer.MAX_VALUE));
                     breakAnimationPacket.setDestroyStage(finalI);
 
                     user.sendPacket(breakAnimationPacket);
