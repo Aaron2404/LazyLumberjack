@@ -27,8 +27,8 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
+import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
-import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
@@ -52,12 +52,11 @@ public class BlockService {
     /**
      * Constructor for BlockService.
      *
-     * @param scheduler       the scheduler to use for delayed tasks.
      * @param materialService the material service to use for material-related checks.
      */
-    public BlockService(ConfigManager configManager, IScheduler scheduler, MaterialService materialService) {
-        this.settings = configManager.getSettings();
-        this.scheduler = scheduler;
+    public BlockService(LazyLumberjack plugin, MaterialService materialService) {
+        this.settings = plugin.getConfigManager().getSettings();
+        this.scheduler = plugin.getScheduler();
         this.materialService = materialService;
     }
 

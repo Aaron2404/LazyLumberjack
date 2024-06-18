@@ -18,7 +18,6 @@
 
 package dev.boostio.lazylumberjack;
 
-import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.managers.LumberManager;
 import dev.boostio.lazylumberjack.managers.StartupManager;
@@ -30,17 +29,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
 public final class LazyLumberjack extends JavaPlugin {
-    private LumberManager logManager;
-    private ConfigManager configManager;
     private IScheduler scheduler;
+    private ConfigManager configManager;
+    private LumberManager logManager;
 
     @Override
     public void onEnable() {
-        configManager = new ConfigManager(this);
         scheduler = new Scheduler(this).getScheduler();
+        configManager = new ConfigManager(this);
         logManager = new LumberManager(this);
-
-        PacketEvents.getAPI().init();
 
         new StartupManager(this);
 
@@ -49,7 +46,6 @@ public final class LazyLumberjack extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        PacketEvents.getAPI().terminate();
         getLogger().info("Plugin has been uninitialized!");
     }
 

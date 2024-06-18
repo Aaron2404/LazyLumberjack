@@ -2,6 +2,9 @@ name: LazyLumberjack
 version: '${version}'
 main: dev.boostio.lazylumberjack.LazyLumberjack
 api-version: '1.13'
+folia-supported: true
+depend:
+  - packetevents
 
 permissions:
   LazyLumberjack.Use:

@@ -23,7 +23,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
-import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.services.BlockService;
 import dev.boostio.lazylumberjack.services.MaterialService;
 import org.bukkit.Material;
@@ -35,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 
 public class LumberManager {
-    private final IScheduler scheduler;
     private final BlockService blockService;
     private final MaterialService materialService;
     private final Settings settings;
@@ -46,10 +44,9 @@ public class LumberManager {
      * @param plugin the plugin instance.
      */
     public LumberManager(LazyLumberjack plugin) {
-        this.scheduler = plugin.getScheduler();
         this.materialService = new MaterialService();
         this.settings = plugin.getConfigManager().getSettings();
-        this.blockService = new BlockService(plugin.getConfigManager(), scheduler, materialService);
+        this.blockService = new BlockService(plugin, materialService);
     }
 
     /**
