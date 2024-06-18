@@ -1,6 +1,23 @@
+/*
+ * This file is part of LazyLumberjack - https://github.com/Aaron2404/LazyLumberjack
+ * Copyright (C) 2024 Aaron and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dev.boostio.lazylumberjack.services;
 
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
@@ -8,9 +25,9 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
-import dev.boostio.lazylumberjack.enums.ConfigOption;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
+import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.utils.PacketPool;
@@ -30,16 +47,7 @@ import java.util.stream.Collectors;
 public class BlockService {
     private final IScheduler scheduler;
     private final MaterialService materialService;
-    private final ConfigManager configManager;
-
-    private final int consecutiveLeafRange;
-    private final int consecutiveAirRange;
-    private final boolean slowBreakEnabled;
-    private final boolean particleEnabled;
-    private final int particleAmount;
-    private final double particleOffsetX;
-    private final double particleOffsetY;
-    private final double particleOffsetZ;
+    private final Settings settings;
 
     /**
      * Constructor for BlockService.
@@ -48,27 +56,23 @@ public class BlockService {
      * @param materialService the material service to use for material-related checks.
      */
     public BlockService(ConfigManager configManager, IScheduler scheduler, MaterialService materialService) {
-        this.configManager = configManager;
+        this.settings = configManager.getSettings();
         this.scheduler = scheduler;
         this.materialService = materialService;
-
-        consecutiveLeafRange = configManager.getConfigurationOption(ConfigOption.DETECTION_LEAF_RANGE);
-        consecutiveAirRange = configManager.getConfigurationOption(ConfigOption.DETECTION_AIR_RANGE);
-        slowBreakEnabled = configManager.getBoolean(ConfigOption.SLOW_BREAK_ENABLED);
-        particleEnabled = configManager.getBoolean(ConfigOption.PARTICLES_ENABLED);
-        particleAmount = configManager.getConfigurationOption(ConfigOption.PARTICLES_AMOUNT);
-        particleOffsetX = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_X);
-        particleOffsetY = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_Y);
-        particleOffsetZ = configManager.getConfigurationOption(ConfigOption.PARTICLES_OFFSET_Z);
     }
 
     public WrapperPlayServerParticle breakParticle(Location location, BlockData blockData) {
+        float particleOffsetX = settings.getAnimations().getSlowBreak().getParticles().getOffset().getX();
+        float particleOffsetY = settings.getAnimations().getSlowBreak().getParticles().getOffset().getY();
+        float particleOffsetZ = settings.getAnimations().getSlowBreak().getParticles().getOffset().getZ();
+        int particleAmount = settings.getAnimations().getSlowBreak().getParticles().getAmount();
+
         ParticleBlockStateData particleBlockStateData = new ParticleBlockStateData(SpigotConversionUtil.fromBukkitBlockData(blockData));
         return new WrapperPlayServerParticle(
-                new Particle(ParticleTypes.BLOCK, particleBlockStateData),
+                new Particle<>(ParticleTypes.BLOCK, particleBlockStateData),
                 false,
                 new Vector3d(location.getX() + 0.5, location.getY(), location.getZ() + 0.5),
-                new Vector3f((float) particleOffsetX, (float) particleOffsetY, (float) particleOffsetZ),
+                new Vector3f(particleOffsetX, particleOffsetY, particleOffsetZ),
                 0f, particleAmount
         );
     }
@@ -82,7 +86,7 @@ public class BlockService {
      * @param consecutiveLeaves the number of consecutive leaves found.
      * @param airBlocks         the number of air blocks found.
      */
-    public void findRelatedLogs(Block block, List<Block> relatedLogs, Set<Block> visitedBlocks, int consecutiveLeaves, int airBlocks) {
+    public List<Block> findRelatedLogs(Block block, List<Block> relatedLogs, Set<Block> visitedBlocks, int consecutiveLeaves, int airBlocks) {
         BlockFace[] faces = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
 
         for (BlockFace face : faces) {
@@ -92,13 +96,15 @@ public class BlockService {
                 if (materialService.isLog(relativeBlock.getType())) {
                     relatedLogs.add(relativeBlock);
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, 0, 0);
-                } else if (materialService.isLeaf(relativeBlock.getType()) && consecutiveLeaves < consecutiveLeafRange) {
+                } else if (materialService.isLeaf(relativeBlock.getType()) && consecutiveLeaves < settings.getDetection().getLeafRange()) {
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves + 1, airBlocks);
-                } else if (relativeBlock.getType() == Material.AIR && airBlocks <= consecutiveAirRange) {
+                } else if (relativeBlock.getType() == Material.AIR && airBlocks <= settings.getDetection().getAirRange()) {
                     findRelatedLogs(relativeBlock, relatedLogs, visitedBlocks, consecutiveLeaves, airBlocks + 1);
                 }
             }
         }
+
+        return relatedLogs;
     }
 
     /**
@@ -118,7 +124,7 @@ public class BlockService {
         for (Integer yLevel : sortedYLevels) {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             int finalCounter = counter;
-            if (slowBreakEnabled) {
+            if (settings.getAnimations().getSlowBreak().isEnabled()) {
                 scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(user, block, finalCounter, delay)));
             } else {
                 sameYLevelBlocks.forEach(Block::breakNaturally);
@@ -167,7 +173,7 @@ public class BlockService {
                     user.sendPacket(breakAnimationPacket);
 
                     // TODO: Fix a lot of things being created for the particle, even if it is disabled.
-                    if (particleEnabled) {
+                    if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
                         user.sendPacket(breakParticlePacket);
                     }
 

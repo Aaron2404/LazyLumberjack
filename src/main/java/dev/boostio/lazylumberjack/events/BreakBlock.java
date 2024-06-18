@@ -1,11 +1,28 @@
+/*
+ * This file is part of LazyLumberjack - https://github.com/Aaron2404/LazyLumberjack
+ * Copyright (C) 2024 Aaron and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dev.boostio.lazylumberjack.events;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
-import dev.boostio.lazylumberjack.enums.ConfigOption;
-import dev.boostio.lazylumberjack.managers.ConfigManager;
+import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.managers.LumberManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import org.bukkit.Material;
@@ -16,35 +33,30 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class BreakBlock implements Listener {
     private final LumberManager logManager;
-    private final ConfigManager configManager;
-    private final boolean plantSaplings;
+    private final Settings settings;
     private final IScheduler scheduler;
 
     public BreakBlock(LazyLumberjack plugin) {
         this.logManager = plugin.getLogManager();
-        this.configManager = plugin.getConfigManager();
+        this.settings = plugin.getConfigManager().getSettings();
         this.scheduler = plugin.getScheduler();
-        this.plantSaplings = configManager.getBoolean(ConfigOption.SAPLING_PLANTING_ENABLED);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onAsyncBreakBlock(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
 
         if (!player.isSneaking() || !player.hasPermission("LazyLumberjack.Use") || !logManager.isAxe(logManager.getItemInMainHand(player)) || !logManager.isLog(event.getBlock().getType())) {
             return;
         }
 
-        scheduler.runAsyncTask(o1 -> {
-            List<Block> relatedLogs = new ArrayList<>();
-            logManager.findRelatedLogs(event.getBlock(), relatedLogs, new HashSet<>(), 0, 0);
+        scheduler.runAsyncTask((o) -> {
+            User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+            List<Block> relatedLogs = logManager.findRelatedLogs(event.getBlock(), 0, 0);
 
             if (relatedLogs.isEmpty()) {
                 return;
@@ -55,7 +67,7 @@ public class BreakBlock implements Listener {
             long delay = logManager.calculateDelay(relatedLogs.size());
             logManager.processLogs(user, relatedLogs, delay);
 
-            if (user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && plantSaplings) {
+            if (user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
                 logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
             }
         });
