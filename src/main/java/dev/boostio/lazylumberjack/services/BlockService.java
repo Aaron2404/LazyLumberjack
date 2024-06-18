@@ -1,5 +1,6 @@
 package dev.boostio.lazylumberjack.services;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
@@ -7,8 +8,8 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import dev.boostio.lazylumberjack.enums.ConfigOption;
 import dev.boostio.lazylumberjack.managers.ConfigManager;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
@@ -153,10 +154,10 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block.getLocation(), block.getBlockData()));
 
-        scheduler.runTaskDelayed(o -> {
+        scheduler.runAsyncTaskDelayed(o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
-                scheduler.runTaskDelayed(do1 -> {
+                scheduler.runAsyncTaskDelayed(do1 -> {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
                     WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
 
@@ -173,9 +174,11 @@ public class BlockService {
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);
 
-                    if (finalI == 8 && materialService.isLog(block.getType())) {
-                        block.breakNaturally();
-                    }
+                    scheduler.runTask(do2 -> {
+                        if (finalI == 8 && materialService.isLog(block.getType())) {
+                            block.breakNaturally();
+                        }
+                    });
                 }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
             }
         }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
