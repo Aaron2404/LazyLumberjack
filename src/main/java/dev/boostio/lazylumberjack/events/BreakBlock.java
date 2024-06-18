@@ -19,7 +19,7 @@
 package dev.boostio.lazylumberjack.events;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
@@ -50,13 +50,17 @@ public class BreakBlock implements Listener {
     public void onAsyncBreakBlock(BlockBreakEvent event) {
         Player player = event.getPlayer();
 
-        if (!player.isSneaking() || !player.hasPermission("LazyLumberjack.Use") || !logManager.isAxe(logManager.getItemInMainHand(player)) || !logManager.isLog(event.getBlock().getType())) {
-            return;
-        }
+        if (!player.isSneaking()) return;
+        if (!logManager.isAxe(logManager.getItemInMainHand(player))) return;
+
+        Block block = event.getBlock();
+        if (!logManager.isLog(block.getType())) return;
 
         scheduler.runAsyncTask((o) -> {
+            if (!player.hasPermission("LazyLumberjack.Use")) return;
+
             User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-            List<Block> relatedLogs = logManager.findRelatedLogs(event.getBlock(), 0, 0);
+            List<Block> relatedLogs = logManager.findRelatedLogs(block, 0, 0);
 
             if (relatedLogs.isEmpty()) {
                 return;
@@ -67,7 +71,7 @@ public class BreakBlock implements Listener {
             long delay = logManager.calculateDelay(relatedLogs.size());
             logManager.processLogs(user, relatedLogs, delay);
 
-            if (user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
                 logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
             }
         });
