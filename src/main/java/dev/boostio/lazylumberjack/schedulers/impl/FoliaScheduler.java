@@ -18,6 +18,7 @@
 
 package dev.boostio.lazylumberjack.schedulers.impl;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import org.bukkit.Bukkit;
@@ -46,8 +47,8 @@ public final class FoliaScheduler implements IScheduler {
     }
 
     @Override
-    public void runTask(@NotNull Consumer<Object> task) {
-        Bukkit.getScheduler().runTask(plugin, (o) -> task.accept(null));
+    public void runTask(@NotNull Location location, @NotNull Consumer<Object> task) {
+        Bukkit.getRegionScheduler().run(plugin, location, (o) -> task.accept(null));
     }
 
     @Override
@@ -61,8 +62,8 @@ public final class FoliaScheduler implements IScheduler {
     }
 
     @Override
-    public void runTaskDelayed(@NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
-        Bukkit.getScheduler().runTaskLater(plugin, (o) -> task.accept(null), convertTimeToTicks(delay, timeUnit));
+    public void runTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
+        Bukkit.getRegionScheduler().runDelayed(plugin, location, (o) -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
     @Override
@@ -71,6 +72,7 @@ public final class FoliaScheduler implements IScheduler {
     }
 
     private long convertTimeToTicks(long time, TimeUnit timeUnit) {
-        return timeUnit.toMillis(time) / 50;
+        long ticks = timeUnit.toMillis(time) / 50;
+        return (ticks > 0) ? ticks : 1;
     }
 }

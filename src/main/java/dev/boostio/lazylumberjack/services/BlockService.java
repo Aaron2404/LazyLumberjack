@@ -160,7 +160,7 @@ public class BlockService {
                 breakParticle(block.getLocation(), block.getBlockData()));
 
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
-            for (byte i = 0; i < 9; i++) {
+            for (byte i = 1; i <= 8; i++) {
                 byte finalI = i;
                 scheduler.runRegionTaskDelayed(block.getLocation(), do1 -> {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
@@ -179,7 +179,7 @@ public class BlockService {
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);
 
-                    scheduler.runTask(do2 -> {
+                    scheduler.runTask(block.getLocation(), do2 -> {
                         if (finalI == 8 && materialService.isLog(block.getType())) {
                             block.breakNaturally();
                         }
@@ -197,7 +197,7 @@ public class BlockService {
      * @param blockBreakAnimationDelay the delay between animations.
      */
     public void plantSaplingsAfterDelay(List<Block> logs, Material logMaterial, long blockBreakAnimationDelay) {
-        scheduler.runTaskDelayed(o -> {
+        scheduler.runTaskDelayed(logs.get(0).getLocation(), o -> {
             findLowestY(logs).stream()
                     .filter(log -> materialService.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
                     .forEach(log -> materialService.plantSapling(log, logMaterial));

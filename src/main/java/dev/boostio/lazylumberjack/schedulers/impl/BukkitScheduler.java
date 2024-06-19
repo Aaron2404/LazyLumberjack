@@ -46,7 +46,7 @@ public final class BukkitScheduler implements IScheduler {
     }
 
     @Override
-    public void runTask(@NotNull Consumer<Object> task) {
+    public void runTask(Location location, @NotNull Consumer<Object> task) {
         Bukkit.getScheduler().runTask(plugin, () -> task.accept(null));
     }
 
@@ -61,7 +61,7 @@ public final class BukkitScheduler implements IScheduler {
     }
 
     @Override
-    public void runTaskDelayed(@NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
+    public void runTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
