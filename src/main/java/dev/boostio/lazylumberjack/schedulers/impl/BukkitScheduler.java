@@ -21,6 +21,7 @@ package dev.boostio.lazylumberjack.schedulers.impl;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -35,22 +36,27 @@ public final class BukkitScheduler implements IScheduler {
     }
 
     @Override
-    public void runAsyncTask(Consumer<Object> task) {
+    public void runAsyncTask(@NotNull Consumer<Object> task) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> task.accept(null));
     }
 
     @Override
-    public void runAsyncTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit) {
+    public void runAsyncTaskDelayed(@NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
     @Override
-    public void runTask(Consumer<Object> task) {
+    public void runTask(@NotNull Consumer<Object> task) {
         Bukkit.getScheduler().runTask(plugin, () -> task.accept(null));
     }
 
     @Override
-    public void runTaskDelayed(Consumer<Object> task, long delay, TimeUnit timeUnit) {
+    public void runRegionTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
+    }
+
+    @Override
+    public void runTaskDelayed(@NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
