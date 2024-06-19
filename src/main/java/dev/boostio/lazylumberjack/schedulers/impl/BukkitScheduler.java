@@ -51,6 +51,11 @@ public final class BukkitScheduler implements IScheduler {
     }
 
     @Override
+    public void runRegionTask(@NotNull Location location, @NotNull Consumer<Object> task) {
+        Bukkit.getScheduler().runTask(plugin, () -> task.accept(null));
+    }
+
+    @Override
     public void runRegionTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }

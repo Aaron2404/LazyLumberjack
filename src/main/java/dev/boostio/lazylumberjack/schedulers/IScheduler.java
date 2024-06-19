@@ -31,6 +31,8 @@ public interface IScheduler {
 
     void runTask(@NotNull Consumer<Object> task);
 
+    void runRegionTask(@NotNull Location location, @NotNull Consumer<Object> task);
+
     void runRegionTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit);
 
     void runTaskDelayed(@NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit);

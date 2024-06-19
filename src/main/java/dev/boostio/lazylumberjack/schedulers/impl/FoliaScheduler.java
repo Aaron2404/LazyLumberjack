@@ -51,8 +51,13 @@ public final class FoliaScheduler implements IScheduler {
     }
 
     @Override
+    public void runRegionTask(@NotNull Location location, @NotNull Consumer<Object> task) {
+        Bukkit.getRegionScheduler().run(plugin, location, (o) -> task.accept(null));
+    }
+
+    @Override
     public void runRegionTaskDelayed(@NotNull Location location, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
-        Bukkit.getRegionScheduler().runDelayed(plugin, location, (o) -> task.accept(null), delay);
+        Bukkit.getRegionScheduler().runDelayed(plugin, location, (o) -> task.accept(null), convertTimeToTicks(delay, timeUnit));
     }
 
     @Override

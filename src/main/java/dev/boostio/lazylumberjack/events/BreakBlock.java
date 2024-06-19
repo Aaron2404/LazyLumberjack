@@ -56,7 +56,7 @@ public class BreakBlock implements Listener {
         Block block = event.getBlock();
         if (!logManager.isLog(block.getType())) return;
 
-        scheduler.runAsyncTask((o) -> {
+        scheduler.runRegionTask(block.getLocation(), (o) -> {
             if (!player.hasPermission("LazyLumberjack.Use")) return;
 
             User user = PacketEvents.getAPI().getPlayerManager().getUser(player);

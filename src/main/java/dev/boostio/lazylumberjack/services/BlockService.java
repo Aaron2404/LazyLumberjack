@@ -159,10 +159,10 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block.getLocation(), block.getBlockData()));
 
-        scheduler.runAsyncTaskDelayed(o -> {
+        scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
             for (byte i = 0; i < 9; i++) {
                 byte finalI = i;
-                scheduler.runAsyncTaskDelayed(do1 -> {
+                scheduler.runRegionTaskDelayed(block.getLocation(), do1 -> {
                     WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
                     WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
 
