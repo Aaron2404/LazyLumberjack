@@ -27,7 +27,9 @@ import dev.boostio.lazylumberjack.services.BlockService;
 import dev.boostio.lazylumberjack.services.MaterialService;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,6 +87,27 @@ public class LumberManager {
     }
 
     /**
+     * Calculates the delay for breaking logs based on various factors.
+     * The delay is influenced by the size of the tree, the type of axe used, the efficiency level of the axe, and any active player effects.
+     * The delay is calculated using the formula: originalDelay * axeFactor * enchantmentFactor * effectFactor
+     * The result is then compared with 1, and the maximum value is returned.
+     * This ensures that the delay is at least 1 millisecond.
+     *
+     * @param size the size of the tree (i.e., the number of logs).
+     * @param axe the ItemStack representing the axe used by the player.
+     * @param player the Player who is breaking the logs.
+     * @return the calculated delay in milliseconds.
+     */
+    public long calculateRealisticDelay(int size, ItemStack axe, Player player) {
+        double axeFactor = materialService.getAxeSpeedFactor(axe.getType());
+
+        double enchantmentFactor = materialService.getEnchantmentFactor(axe.getEnchantmentLevel(Enchantment.EFFICIENCY));
+        double effectFactor = materialService.getEffectFactor(player);
+        long originalDelay = calculateDelay(size);
+        return (long) Math.max(originalDelay * axeFactor * enchantmentFactor * effectFactor, 1);
+    }
+
+    /**
      * Plants saplings after a delay.
      *
      * @param logs                     the list of logs.
@@ -101,12 +124,12 @@ public class LumberManager {
      * @param player the player.
      * @return the material of the item in the player's main hand.
      */
-    public Material getItemInMainHand(Player player) {
+    public ItemStack getItemInMainHand(Player player) {
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
         if (user.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
-            return player.getInventory().getItemInMainHand().getType();
+            return player.getInventory().getItemInMainHand();
         } else {
-            return player.getInventory().getItemInHand().getType();
+            return player.getInventory().getItemInHand();
         }
     }
 

@@ -20,6 +20,8 @@ package dev.boostio.lazylumberjack.services;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
 
 public class MaterialService {
     /**
@@ -84,6 +86,54 @@ public class MaterialService {
                 return Material.DARK_OAK_SAPLING;
             default:
                 return Material.AIR;
+        }
+    }
+
+
+    public double getAxeSpeedFactor(Material axeMaterial) {
+        switch (axeMaterial) {
+            case WOODEN_AXE:
+                return 3;
+            case STONE_AXE:
+                return 1.5;
+            case IRON_AXE:
+                return 1.25;
+            case DIAMOND_AXE:
+                return 1.15;
+            case NETHERITE_AXE:
+                return 1.10;
+            case GOLDEN_AXE:
+                return 1;
+            default:
+                return 1.0; // default speed factor for non-axe tools
+        }
+    }
+
+    public double getEffectFactor(Player player) {
+        double effectFactor = 1.0;
+        if (player.hasPotionEffect(PotionEffectType.HASTE)) {
+            effectFactor *= 1 - 0.20 * player.getPotionEffect(PotionEffectType.HASTE).getAmplifier();
+        }
+        if (player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
+            effectFactor *= 1 + 0.10 * player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getAmplifier();
+        }
+        return effectFactor;
+    }
+
+    public double getEnchantmentFactor(int efficiencyLevel) {
+        switch (efficiencyLevel) {
+            case 1:
+                return 0.75;
+            case 2:
+                return 0.70;
+            case 3:
+                return 0.65;
+            case 4:
+                return 0.60;
+            case 5:
+                return 0.55;
+            default:
+                return 1.0; // default enchantment factor for non-enchanted tools
         }
     }
 

@@ -32,6 +32,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
@@ -51,7 +52,9 @@ public class BreakBlock implements Listener {
         Player player = event.getPlayer();
 
         if (!player.isSneaking()) return;
-        if (!logManager.isAxe(logManager.getItemInMainHand(player))) return;
+
+        ItemStack handItem = logManager.getItemInMainHand(player);
+        if (!logManager.isAxe(handItem.getType())) return;
 
         Block block = event.getBlock();
         if (!logManager.isLog(block.getType())) return;
@@ -68,7 +71,8 @@ public class BreakBlock implements Listener {
 
             Material logMaterial = relatedLogs.get(0).getType();
 
-            long delay = logManager.calculateDelay(relatedLogs.size());
+            //long delay = logManager.calculateDelay(relatedLogs.size());
+            long delay = logManager.calculateRealisticDelay(relatedLogs.size(), handItem, player);
             logManager.processLogs(user, relatedLogs, delay);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {

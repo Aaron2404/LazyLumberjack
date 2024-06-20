@@ -40,6 +40,11 @@ animations:
       # This is used to change the speed based on the amount of logs, i.e. the more logs the faster the animation.
       speed-factor: 0.1
 
+      # Take into account the type of axe, the enchantments on it, and player enchantments.
+      # For example this would make a stone axe twice as fast as a wooden axe. But a wooden axe with efficiency 5 would be about the same speed as a stone axe.
+      # These effects are applied on top of the regular delay calculation, this allows for customization of the realistic speeds.
+      realistic-speeds: true
+
 helpers:
   # Whether saplings should be placed when breaking a tree.
   # Currently only works with 1.13 and above.
