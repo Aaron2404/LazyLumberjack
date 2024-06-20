@@ -10,3 +10,7 @@ permissions:
   LazyLumberjack.Use:
     description: Allows the player to log lazily.
     default: op
+
+  LazyLumberJack.Debug:
+    description: Allows the player to see debug messages.
+    default: op

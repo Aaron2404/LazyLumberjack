@@ -109,7 +109,7 @@ public class LumberManager {
         long calculatedDelay = (long) Math.max(originalDelay * axeFactor * enchantmentFactor * effectFactor, 1);
 
         if(settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().isDebug()) {
-            Bukkit.broadcast(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay));
+            Bukkit.broadcast(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay), "LazyLumberjack.Debug");
         }
 
         return calculatedDelay;
@@ -127,13 +127,13 @@ public class LumberManager {
                 .append(Component.text("\n\u25cf Enchanted factor: ", NamedTextColor.GREEN)
                         .decoration(TextDecoration.BOLD, true))
                 .append(Component.text(Math.round(enchantmentFactor * 100.0) / 100.0, NamedTextColor.AQUA))
-                .append(Component.text("\n\u25cf effect factor: ", NamedTextColor.GREEN)
+                .append(Component.text("\n\u25cf Effect factor: ", NamedTextColor.GREEN)
                         .decoration(TextDecoration.BOLD, true))
                 .append(Component.text(effectFactor, NamedTextColor.AQUA))
                 .append(Component.text("\n\u25cf Original delay: ", NamedTextColor.GREEN)
                         .decoration(TextDecoration.BOLD, true))
                 .append(Component.text(originalDelay, NamedTextColor.AQUA))
-                .append(Component.text("\n\u25cf calculated delay: ", NamedTextColor.GREEN)
+                .append(Component.text("\n\u25cf Calculated delay: ", NamedTextColor.GREEN)
                         .decoration(TextDecoration.BOLD, true))
                 .append(Component.text(calculatedDelay, NamedTextColor.AQUA))
                 .build();
