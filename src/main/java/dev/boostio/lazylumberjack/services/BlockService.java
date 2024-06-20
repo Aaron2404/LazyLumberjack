@@ -18,6 +18,7 @@
 
 package dev.boostio.lazylumberjack.services;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
@@ -109,11 +110,10 @@ public class BlockService {
     /**
      * Processes logs by breaking them with animation.
      *
-     * @param user  the user.
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(User user, List<Block> logs, long delay) {
+    public void processLogs(List<Block> logs, long delay) {
         Map<Integer, List<Block>> logsByYLevel = logs.stream()
                 .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
 
@@ -124,7 +124,7 @@ public class BlockService {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             int finalCounter = counter;
             if (settings.getAnimations().getSlowBreak().isEnabled()) {
-                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(user, block, finalCounter, delay)));
+                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(block, finalCounter, delay)));
             } else {
                 sameYLevelBlocks.forEach(Block::breakNaturally);
             }
@@ -147,17 +147,20 @@ public class BlockService {
     /**
      * Breaks a block with animation.
      *
-     * @param user                     the user.
      * @param block                    the block to break.
      * @param counter                  the counter for animation timing.
      * @param blockBreakAnimationDelay the delay between animations.
      */
-    public void breakBlockWithAnimation(User user, Block block, int counter, long blockBreakAnimationDelay) {
+    public void breakBlockWithAnimation(Block block, int counter, long blockBreakAnimationDelay) {
         PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool = new PacketPool<>(() ->
                 new WrapperPlayServerBlockBreakAnimation(0, new Vector3i(block.getX(), block.getY(), block.getZ()), (byte) 0));
 
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block.getLocation(), block.getBlockData()));
+
+        List<User> usersSeeingChunk = block.getChunk().getPlayersSeeingChunk().stream()
+                .map(player -> PacketEvents.getAPI().getPlayerManager().getUser(player))
+                .collect(Collectors.toList());
 
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
             for (byte i = 1; i <= 8; i++) {
@@ -169,11 +172,13 @@ public class BlockService {
                     breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
                     breakAnimationPacket.setDestroyStage(finalI);
 
-                    user.sendPacket(breakAnimationPacket);
+                    for (User user : usersSeeingChunk){
+                        user.sendPacket(breakAnimationPacket);
 
-                    // TODO: Fix a lot of things being created for the particle, even if it is disabled.
-                    if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
-                        user.sendPacket(breakParticlePacket);
+                        // TODO: Fix a lot of things being created for the particle, even if it is disabled.
+                        if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
+                            user.sendPacket(breakParticlePacket);
+                        }
                     }
 
                     animationPacketPool.release(breakAnimationPacket);

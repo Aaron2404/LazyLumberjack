@@ -62,7 +62,6 @@ public class BreakBlock implements Listener {
         scheduler.runRegionTask(block.getLocation(), (o) -> {
             if (!player.hasPermission("LazyLumberjack.Use")) return;
 
-            User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
             List<Block> relatedLogs = logManager.findRelatedLogs(block, 0, 0);
 
             if (relatedLogs.isEmpty()) {
@@ -73,7 +72,7 @@ public class BreakBlock implements Listener {
 
             //long delay = logManager.calculateDelay(relatedLogs.size());
             long delay = logManager.calculateRealisticDelay(relatedLogs.size(), handItem, player);
-            logManager.processLogs(user, relatedLogs, delay);
+            logManager.processLogs(relatedLogs, delay);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
                 logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);

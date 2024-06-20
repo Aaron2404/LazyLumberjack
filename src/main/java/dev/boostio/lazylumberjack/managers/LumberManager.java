@@ -65,12 +65,11 @@ public class LumberManager {
     /**
      * Processes logs by breaking them with animation.
      *
-     * @param user  the user.
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(User user, List<Block> logs, long delay) {
-        blockService.processLogs(user, logs, delay);
+    public void processLogs(List<Block> logs, long delay) {
+        blockService.processLogs(logs, delay);
     }
 
     /**
