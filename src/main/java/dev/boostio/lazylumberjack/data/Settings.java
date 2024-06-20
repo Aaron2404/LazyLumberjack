@@ -24,7 +24,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Settings {
-
     private Detection detection = new Detection();
     private Animations animations = new Animations();
     private Helpers helpers = new Helpers();
@@ -69,6 +68,23 @@ public class Settings {
             public class Delay {
                 private int baseDelay = 40;
                 private double speedFactor = 0.1;
+                private RealisticSpeeds realisticSpeeds = new RealisticSpeeds();
+
+                @Getter
+                @Setter
+                public class RealisticSpeeds {
+                    private boolean enabled = true;
+                    private boolean debug = false;
+                    private double woodenAxeFactor = 3;
+                    private double stoneAxeFactor = 1.5;
+                    private double ironAxeFactor = 1.25;
+                    private double goldenAxeFactor = 1;
+                    private double diamondAxeFactor = 1.15;
+                    private double netheriteAxeFactor = 1.10;
+                    private double efficiencyFactor = 0.05;
+                    private double hasteFactor = 0.20;
+                    private double miningFatigueFactor = 0.10;
+                }
             }
         }
     }

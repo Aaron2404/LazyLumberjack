@@ -25,6 +25,10 @@ import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.services.BlockService;
 import dev.boostio.lazylumberjack.services.MaterialService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -46,7 +50,7 @@ public class LumberManager {
      * @param plugin the plugin instance.
      */
     public LumberManager(LazyLumberjack plugin) {
-        this.materialService = new MaterialService();
+        this.materialService = new MaterialService(plugin);
         this.settings = plugin.getConfigManager().getSettings();
         this.blockService = new BlockService(plugin, materialService);
     }
@@ -99,11 +103,40 @@ public class LumberManager {
      */
     public long calculateRealisticDelay(int size, ItemStack axe, Player player) {
         double axeFactor = materialService.getAxeSpeedFactor(axe.getType());
-
         double enchantmentFactor = materialService.getEnchantmentFactor(axe.getEnchantmentLevel(Enchantment.EFFICIENCY));
         double effectFactor = materialService.getEffectFactor(player);
         long originalDelay = calculateDelay(size);
-        return (long) Math.max(originalDelay * axeFactor * enchantmentFactor * effectFactor, 1);
+        long calculatedDelay = (long) Math.max(originalDelay * axeFactor * enchantmentFactor * effectFactor, 1);
+
+        if(settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().isDebug()) {
+            Bukkit.broadcast(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay));
+        }
+
+        return calculatedDelay;
+    }
+
+    private Component debugRealisticDelayComponent(double axeFactor, double enchantmentFactor, double effectFactor, long originalDelay, long calculatedDelay) {
+
+        return Component.text()
+                .append(Component.text("[DEBUG] delay Stats", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .appendNewline()
+                .append(Component.text("\n\u25cf Axe factor: ", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .append(Component.text(axeFactor, NamedTextColor.AQUA))
+                .append(Component.text("\n\u25cf Enchanted factor: ", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .append(Component.text(Math.round(enchantmentFactor * 100.0) / 100.0, NamedTextColor.AQUA))
+                .append(Component.text("\n\u25cf effect factor: ", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .append(Component.text(effectFactor, NamedTextColor.AQUA))
+                .append(Component.text("\n\u25cf Original delay: ", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .append(Component.text(originalDelay, NamedTextColor.AQUA))
+                .append(Component.text("\n\u25cf calculated delay: ", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.BOLD, true))
+                .append(Component.text(calculatedDelay, NamedTextColor.AQUA))
+                .build();
     }
 
     /**

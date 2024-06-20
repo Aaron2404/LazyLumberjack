@@ -43,7 +43,35 @@ animations:
       # Take into account the type of axe, the enchantments on it, and player enchantments.
       # For example this would make a stone axe twice as fast as a wooden axe. But a wooden axe with efficiency 5 would be about the same speed as a stone axe.
       # These effects are applied on top of the regular delay calculation, this allows for customization of the realistic speeds.
-      realistic-speeds: true
+      realistic-speeds:
+        enabled: true
+        debug: true
+
+        # The factors for each axe type.
+        axe-factors:
+          WOODEN: 3
+          STONE: 1.5
+          IRON: 1.25
+          GOLDEN: 1
+          DIAMOND: 1.15
+          NETHERITE:  1.10
+
+        # The factors for each enchantment.
+        enchantment-factors:
+          # The factor for each level of efficiency, by default in minecraft each level is .05 faster than te last. so efficiency V is 20% faster than efficiency I.
+          # So it would look like this:
+          # efficiency I:   0.75.
+          # efficiency II:  0.70
+          # efficiency III: 0.65
+          # efficiency IV:  0.60
+          # efficiency V:   0.55
+          efficiency: 0.05
+
+          # The factors for each player effect.
+          # The players effects are consistent across the levels, so they are calculated using factor * effect level.
+        player-effect-factors:
+          haste: 0.20
+          mining-fatigue: 0.10
 
 helpers:
   # Whether saplings should be placed when breaking a tree.

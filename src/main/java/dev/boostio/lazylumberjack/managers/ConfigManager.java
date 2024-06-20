@@ -53,6 +53,17 @@ public class ConfigManager {
         settings.getAnimations().getSlowBreak().getParticles().getOffset().setZ((float) plugin.getConfig().getDouble("animations.slow-break.particles.offset.z", 0.0f));
         settings.getAnimations().getSlowBreak().getDelay().setBaseDelay(plugin.getConfig().getInt("animations.slow-break.delay.base-delay", 40));
         settings.getAnimations().getSlowBreak().getDelay().setSpeedFactor(plugin.getConfig().getDouble("animations.slow-break.delay.speed-factor", 0.1));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setEnabled(plugin.getConfig().getBoolean("animations.slow-break.delay.realistic-speeds.enabled", true));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setDebug(plugin.getConfig().getBoolean("animations.slow-break.delay.realistic-speeds.debug", true));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setWoodenAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.WOODEN", 3));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setStoneAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.STONE", 1.5));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setIronAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.IRON", 1.25));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setGoldenAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.GOLDEN", 1));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setDiamondAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.DIAMOND", 1.15));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setNetheriteAxeFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.axe-factors.NETHERITE", 1.10));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setEfficiencyFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.enchantment-factors.efficiency", 0.05));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setHasteFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.player-effect-factors.haste", 0.20));
+        settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().setMiningFatigueFactor(plugin.getConfig().getDouble("animations.slow-break.delay.realistic-speeds.player-effect-factors.mining-fatigue", 0.10));
 
         settings.getHelpers().setPlaceSapling(plugin.getConfig().getBoolean("helpers.place-sapling", true));
 

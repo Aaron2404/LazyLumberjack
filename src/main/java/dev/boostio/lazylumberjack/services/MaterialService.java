@@ -18,12 +18,21 @@
 
 package dev.boostio.lazylumberjack.services;
 
+import dev.boostio.lazylumberjack.LazyLumberjack;
+import dev.boostio.lazylumberjack.data.Settings;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
 public class MaterialService {
+    private final Settings settings;
+
+    public MaterialService(LazyLumberjack plugin) {
+        this.settings = plugin.getConfigManager().getSettings();
+    }
+
+
     /**
      * Checks if the given material is a log.
      *
@@ -91,19 +100,20 @@ public class MaterialService {
 
 
     public double getAxeSpeedFactor(Material axeMaterial) {
+        Settings.Animations.SlowBreak.Delay.RealisticSpeeds realisticSpeeds = settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds();
         switch (axeMaterial) {
             case WOODEN_AXE:
-                return 3;
+                return realisticSpeeds.getWoodenAxeFactor();
             case STONE_AXE:
-                return 1.5;
+                return realisticSpeeds.getStoneAxeFactor();
             case IRON_AXE:
-                return 1.25;
+                return realisticSpeeds.getIronAxeFactor();
             case DIAMOND_AXE:
-                return 1.15;
+                return realisticSpeeds.getDiamondAxeFactor();
             case NETHERITE_AXE:
-                return 1.10;
+                return realisticSpeeds.getNetheriteAxeFactor();
             case GOLDEN_AXE:
-                return 1;
+                return realisticSpeeds.getGoldenAxeFactor();
             default:
                 return 1.0; // default speed factor for non-axe tools
         }
@@ -111,30 +121,19 @@ public class MaterialService {
 
     public double getEffectFactor(Player player) {
         double effectFactor = 1.0;
+        Settings.Animations.SlowBreak.Delay.RealisticSpeeds realisticSpeeds = settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds();
         if (player.hasPotionEffect(PotionEffectType.HASTE)) {
-            effectFactor *= 1 - 0.20 * player.getPotionEffect(PotionEffectType.HASTE).getAmplifier();
+            effectFactor *= 1 - realisticSpeeds.getHasteFactor() * player.getPotionEffect(PotionEffectType.HASTE).getAmplifier();
         }
         if (player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
-            effectFactor *= 1 + 0.10 * player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getAmplifier();
+            effectFactor *= 1 + realisticSpeeds.getMiningFatigueFactor() * player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getAmplifier();
         }
         return effectFactor;
     }
 
     public double getEnchantmentFactor(int efficiencyLevel) {
-        switch (efficiencyLevel) {
-            case 1:
-                return 0.75;
-            case 2:
-                return 0.70;
-            case 3:
-                return 0.65;
-            case 4:
-                return 0.60;
-            case 5:
-                return 0.55;
-            default:
-                return 1.0; // default enchantment factor for non-enchanted tools
-        }
+        if(efficiencyLevel == 0) return 1.0;
+        return 0.80 - settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().getEfficiencyFactor() * efficiencyLevel;
     }
 
     /**
