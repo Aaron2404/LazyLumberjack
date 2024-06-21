@@ -6,7 +6,7 @@ plugins {
 
 group = "dev.boostio.lazylumberjack"
 description = rootProject.name
-version = "1.0.0"
+version = "1.0.0-SNAPSHOT"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -71,7 +71,7 @@ tasks {
     // 1.17           = Java 16
     // 1.18 - 1.20.4  = Java 17
     // 1-20.5+        = Java 21
-    val version = "1.20.6"
+    val version = "1.21"
     val javaVersion = 21
 
     val requiredPlugins = runPaper.downloadPluginsSpec {
