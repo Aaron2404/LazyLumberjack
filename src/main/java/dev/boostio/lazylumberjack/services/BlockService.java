@@ -19,6 +19,7 @@
 package dev.boostio.lazylumberjack.services;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
@@ -33,11 +34,10 @@ import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
@@ -49,6 +49,7 @@ public class BlockService {
     private final IScheduler scheduler;
     private final MaterialService materialService;
     private final Settings settings;
+    private boolean useMaterialData;
 
     /**
      * Constructor for BlockService.
@@ -59,19 +60,28 @@ public class BlockService {
         this.settings = plugin.getConfigManager().getSettings();
         this.scheduler = plugin.getScheduler();
         this.materialService = materialService;
+
+        this.useMaterialData = PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13);
     }
 
-    public WrapperPlayServerParticle breakParticle(Location location, BlockData blockData) {
+    public WrapperPlayServerParticle breakParticle(Block block) {
         float particleOffsetX = settings.getAnimations().getSlowBreak().getParticles().getOffset().getX();
         float particleOffsetY = settings.getAnimations().getSlowBreak().getParticles().getOffset().getY();
         float particleOffsetZ = settings.getAnimations().getSlowBreak().getParticles().getOffset().getZ();
         int particleAmount = settings.getAnimations().getSlowBreak().getParticles().getAmount();
 
-        ParticleBlockStateData particleBlockStateData = new ParticleBlockStateData(SpigotConversionUtil.fromBukkitBlockData(blockData));
+        ParticleBlockStateData particleBlockStateData;
+        if(useMaterialData){
+            particleBlockStateData = new ParticleBlockStateData(SpigotConversionUtil.fromBukkitMaterialData(block.getState().getData()));
+        }
+        else{
+            particleBlockStateData = new ParticleBlockStateData(SpigotConversionUtil.fromBukkitBlockData(block.getBlockData()));
+        }
+
         return new WrapperPlayServerParticle(
                 new Particle<>(ParticleTypes.BLOCK, particleBlockStateData),
                 false,
-                new Vector3d(location.getX() + 0.5, location.getY(), location.getZ() + 0.5),
+                new Vector3d(block.getLocation().getX() + 0.5, block.getLocation().getY(), block.getLocation().getZ() + 0.5),
                 new Vector3f(particleOffsetX, particleOffsetY, particleOffsetZ),
                 0f, particleAmount
         );
@@ -113,7 +123,7 @@ public class BlockService {
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(List<Block> logs, long delay) {
+    public void processLogs(Player player, List<Block> logs, long delay) {
         Map<Integer, List<Block>> logsByYLevel = logs.stream()
                 .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
 
@@ -124,7 +134,7 @@ public class BlockService {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             int finalCounter = counter;
             if (settings.getAnimations().getSlowBreak().isEnabled()) {
-                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(block, finalCounter, delay)));
+                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(player, block, finalCounter, delay)));
             } else {
                 sameYLevelBlocks.forEach(Block::breakNaturally);
             }
@@ -151,16 +161,12 @@ public class BlockService {
      * @param counter                  the counter for animation timing.
      * @param blockBreakAnimationDelay the delay between animations.
      */
-    public void breakBlockWithAnimation(Block block, int counter, long blockBreakAnimationDelay) {
+    public void breakBlockWithAnimation(Player player, Block block, int counter, long blockBreakAnimationDelay) {
         PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool = new PacketPool<>(() ->
                 new WrapperPlayServerBlockBreakAnimation(0, new Vector3i(block.getX(), block.getY(), block.getZ()), (byte) 0));
 
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
-                breakParticle(block.getLocation(), block.getBlockData()));
-
-        List<User> usersSeeingChunk = block.getChunk().getPlayersSeeingChunk().stream()
-                .map(player -> PacketEvents.getAPI().getPlayerManager().getUser(player))
-                .collect(Collectors.toList());
+                breakParticle(block));
 
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
             for (byte i = 1; i <= 8; i++) {
@@ -172,14 +178,13 @@ public class BlockService {
                     breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
                     breakAnimationPacket.setDestroyStage(finalI);
 
-                    for (User user : usersSeeingChunk){
-                        user.sendPacket(breakAnimationPacket);
+                    User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+                    user.sendPacket(breakAnimationPacket);
 
                         // TODO: Fix a lot of things being created for the particle, even if it is disabled.
                         if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
                             user.sendPacket(breakParticlePacket);
                         }
-                    }
 
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);

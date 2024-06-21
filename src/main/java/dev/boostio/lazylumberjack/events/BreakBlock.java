@@ -67,14 +67,14 @@ public class BreakBlock implements Listener {
             if (relatedLogs.isEmpty()) {
                 return;
             }
-
+            
             Material logMaterial = relatedLogs.get(0).getType();
 
             long delay = settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().isEnabled() ?
                     logManager.calculateRealisticDelay(relatedLogs.size(), handItem, player) :
                     logManager.calculateDelay(relatedLogs.size());
 
-            logManager.processLogs(relatedLogs, delay);
+            logManager.processLogs(player, relatedLogs, delay);
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
                 logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
             }

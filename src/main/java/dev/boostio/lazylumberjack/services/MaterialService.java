@@ -115,18 +115,18 @@ public class MaterialService {
             case GOLDEN_AXE:
                 return realisticSpeeds.getGoldenAxeFactor();
             default:
-                return 1.0; // default speed factor for non-axe tools
+                return 3.0; // default speed factor for non-axe tools
         }
     }
 
     public double getEffectFactor(Player player) {
         double effectFactor = 1.0;
         Settings.Animations.SlowBreak.Delay.RealisticSpeeds realisticSpeeds = settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds();
-        if (player.hasPotionEffect(PotionEffectType.HASTE)) {
-            effectFactor *= 1 - realisticSpeeds.getHasteFactor() * player.getPotionEffect(PotionEffectType.HASTE).getAmplifier();
+        if (player.hasPotionEffect(PotionEffectType.getByName("FAST_DIGGING"))) {
+            effectFactor *= 1 - realisticSpeeds.getHasteFactor() * player.getPotionEffect(PotionEffectType.getByName("FAST_DIGGING")).getAmplifier();
         }
-        if (player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
-            effectFactor *= 1 + realisticSpeeds.getMiningFatigueFactor() * player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getAmplifier();
+        if (player.hasPotionEffect(PotionEffectType.getByName("SLOW_DIGGING"))) {
+            effectFactor *= 1 + realisticSpeeds.getMiningFatigueFactor() * player.getPotionEffect(PotionEffectType.getByName("SLOW_DIGGING")).getAmplifier();
         }
         return effectFactor;
     }

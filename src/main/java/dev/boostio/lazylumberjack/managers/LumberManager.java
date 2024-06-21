@@ -19,6 +19,7 @@
 package dev.boostio.lazylumberjack.managers;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
@@ -28,13 +29,16 @@ import dev.boostio.lazylumberjack.services.MaterialService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -72,8 +76,8 @@ public class LumberManager {
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(List<Block> logs, long delay) {
-        blockService.processLogs(logs, delay);
+    public void processLogs(Player player, List<Block> logs, long delay) {
+        blockService.processLogs(player, logs, delay);
     }
 
     /**
@@ -103,20 +107,26 @@ public class LumberManager {
      */
     public long calculateRealisticDelay(int size, ItemStack axe, Player player) {
         double axeFactor = materialService.getAxeSpeedFactor(axe.getType());
-        double enchantmentFactor = materialService.getEnchantmentFactor(axe.getEnchantmentLevel(Enchantment.EFFICIENCY));
+        double enchantmentFactor = materialService.getEnchantmentFactor(axe.getEnchantmentLevel(Enchantment.getByName("DIG_SPEED")));
         double effectFactor = materialService.getEffectFactor(player);
         long originalDelay = calculateDelay(size);
         long calculatedDelay = (long) Math.max(originalDelay * axeFactor * enchantmentFactor * effectFactor, 1);
 
         if(settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().isDebug()) {
-            Bukkit.broadcast(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay), "LazyLumberjack.Debug");
+            if(PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
+                Bukkit.broadcast(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay), "LazyLumberjack.Debug");
+            }
+            else{
+               Bukkit.broadcast(LegacyComponentSerializer.legacySection().serialize(debugRealisticDelayComponent(axeFactor, enchantmentFactor, effectFactor, originalDelay, calculatedDelay)), "LazyLumberjack.Debug");
+            }
         }
 
         return calculatedDelay;
     }
 
-    private Component debugRealisticDelayComponent(double axeFactor, double enchantmentFactor, double effectFactor, long originalDelay, long calculatedDelay) {
 
+
+    private Component debugRealisticDelayComponent(double axeFactor, double enchantmentFactor, double effectFactor, long originalDelay, long calculatedDelay) {
         return Component.text()
                 .append(Component.text("[DEBUG] delay Stats", NamedTextColor.GREEN)
                         .decoration(TextDecoration.BOLD, true))
