@@ -34,6 +34,7 @@ import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
 import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -154,6 +155,15 @@ public class BlockService {
         return logs.stream().filter(block -> block.getLocation().getBlockY() == minY).collect(Collectors.toList());
     }
 
+    private List<User> getPlayersWhoCanSeeBlock(Block block) {
+        double viewDistance = Bukkit.getServer().getViewDistance() * 16; // Convert chunk count to block count
+
+            return block.getLocation().getWorld().getNearbyEntities(block.getLocation(), viewDistance, viewDistance, viewDistance).stream()
+                    .filter(entity -> entity instanceof Player)
+                    .map(entity -> PacketEvents.getAPI().getPlayerManager().getUser(entity))
+                    .collect(Collectors.toList());
+    }
+
     /**
      * Breaks a block with animation.
      *
@@ -168,6 +178,12 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block));
 
+        final List<User>[] users = new List[1];
+        scheduler.runTask(block.getLocation(), o -> {
+            users[0] = getPlayersWhoCanSeeBlock(block);
+        });
+
+
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
             for (byte i = 1; i <= 8; i++) {
                 byte finalI = i;
@@ -178,13 +194,14 @@ public class BlockService {
                     breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
                     breakAnimationPacket.setDestroyStage(finalI);
 
-                    User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-                    user.sendPacket(breakAnimationPacket);
+                    for (User user : users[0]) {
+                        user.sendPacket(breakAnimationPacket);
 
                         // TODO: Fix a lot of things being created for the particle, even if it is disabled.
                         if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
                             user.sendPacket(breakParticlePacket);
                         }
+                    }
 
                     animationPacketPool.release(breakAnimationPacket);
                     particlePacketPool.release(breakParticlePacket);
