@@ -158,6 +158,7 @@ public class BlockService {
     private List<User> getPlayersWhoCanSeeBlock(Block block) {
         double viewDistance = Bukkit.getServer().getViewDistance() * 16; // Convert chunk count to block count
 
+            // TODO: Do this async on newer versions using the block method.
             return block.getLocation().getWorld().getNearbyEntities(block.getLocation(), viewDistance, viewDistance, viewDistance).stream()
                     .filter(entity -> entity instanceof Player)
                     .map(entity -> PacketEvents.getAPI().getPlayerManager().getUser(entity))
@@ -178,6 +179,7 @@ public class BlockService {
         PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
                 breakParticle(block));
 
+        // TODO: Find a less hacky way to do this.
         final List<User>[] users = new List[1];
         scheduler.runTask(block.getLocation(), o -> {
             users[0] = getPlayersWhoCanSeeBlock(block);
