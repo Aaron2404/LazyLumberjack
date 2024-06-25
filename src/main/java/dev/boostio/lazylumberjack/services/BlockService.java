@@ -140,6 +140,11 @@ public class BlockService {
                 sameYLevelBlocks.forEach(Block::breakNaturally);
             }
 
+            // If it's the bottom block, check and plant the sapling after processing logs.
+            if (counter == 0) {
+                plantSaplingsAfterDelay(sameYLevelBlocks, sameYLevelBlocks.get(0).getType(), delay);
+            }
+
             counter++;
         }
     }
@@ -232,7 +237,13 @@ public class BlockService {
                         Block blockBelow = log.getRelative(BlockFace.DOWN);
                         return materialService.isDirtOrPodzol(blockBelow.getType()) && blockBelow.getType() != Material.AIR;
                     })
-                    .forEach(log -> materialService.plantSapling(log, logMaterial));
+                    .forEach(log -> {
+                        Block blockBelow = log.getRelative(BlockFace.DOWN);
+                        if (materialService.isDirtOrPodzol(blockBelow.getType()) && blockBelow.getType() != Material.AIR) {
+                            blockBelow.getWorld().getBlockAt(log.getLocation()).setType(materialService.getSaplingFromLog(logMaterial));
+                        }
+                    });
         }, blockBreakAnimationDelay * 8 * logs.size() + 20L, TimeUnit.MILLISECONDS);
     }
+
 }

@@ -136,17 +136,4 @@ public class MaterialService {
         if(efficiencyLevel == 0) return 1.0;
         return 0.80 - settings.getAnimations().getSlowBreak().getDelay().getRealisticSpeeds().getEfficiencyFactor() * efficiencyLevel;
     }
-
-    /**
-     * Plants a sapling at the given log's location.
-     *
-     * @param log         the log block.
-     * @param logMaterial the material of the log.
-     */
-    public void plantSapling(Block log, Material logMaterial) {
-        Block blockBelow = log.getRelative(BlockFace.DOWN);
-        if (isDirtOrPodzol(blockBelow.getType()) && blockBelow.getType() != Material.AIR) {
-            log.setType(getSaplingFromLog(logMaterial));
-        }
-    }
 }

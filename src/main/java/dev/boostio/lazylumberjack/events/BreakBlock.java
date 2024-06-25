@@ -34,6 +34,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class BreakBlock implements Listener {
@@ -76,7 +77,7 @@ public class BreakBlock implements Listener {
 
             logManager.processLogs(player, relatedLogs, delay);
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
-                logManager.plantSaplingsAfterDelay(relatedLogs, logMaterial, delay);
+               logManager.plantSaplingsAfterDelay(Arrays.asList(block), logMaterial, delay);
             }
         });
     }
