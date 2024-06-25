@@ -183,6 +183,9 @@ public class BlockService {
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
             futureUsers.thenAccept(users -> runBlockBreakAnimation(users, block, counter, blockBreakAnimationDelay, animationPacketPool, particlePacketPool));
         }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
+
+        // TODO: send block break sound
+        // TODO: send a reset block break animation packet i.e. one with destroy stage 0.
     }
 
     private void runBlockBreakAnimation(List<User> users, Block block, int counter, long blockBreakAnimationDelay,
