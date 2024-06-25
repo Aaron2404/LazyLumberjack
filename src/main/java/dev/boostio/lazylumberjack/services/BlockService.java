@@ -43,6 +43,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -124,7 +125,7 @@ public class BlockService {
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(Player player, List<Block> logs, long delay) {
+    public void processLogs(List<Block> logs, long delay) {
         Map<Integer, List<Block>> logsByYLevel = logs.stream()
                 .collect(Collectors.groupingBy(block -> block.getLocation().getBlockY()));
 
@@ -135,7 +136,7 @@ public class BlockService {
             List<Block> sameYLevelBlocks = logsByYLevel.get(yLevel);
             int finalCounter = counter;
             if (settings.getAnimations().getSlowBreak().isEnabled()) {
-                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(player, block, finalCounter, delay)));
+                scheduler.runAsyncTask(o -> sameYLevelBlocks.forEach(block -> breakBlockWithAnimation(block, finalCounter, delay)));
             } else {
                 sameYLevelBlocks.forEach(Block::breakNaturally);
             }
@@ -170,57 +171,63 @@ public class BlockService {
                     .collect(Collectors.toList());
     }
 
-    /**
-     * Breaks a block with animation.
-     *
-     * @param block                    the block to break.
-     * @param counter                  the counter for animation timing.
-     * @param blockBreakAnimationDelay the delay between animations.
-     */
-    public void breakBlockWithAnimation(Player player, Block block, int counter, long blockBreakAnimationDelay) {
+    public void breakBlockWithAnimation(Block block, int counter, long blockBreakAnimationDelay) {
         PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool = new PacketPool<>(() ->
                 new WrapperPlayServerBlockBreakAnimation(0, new Vector3i(block.getX(), block.getY(), block.getZ()), (byte) 0));
 
-        PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() ->
-                breakParticle(block));
+        PacketPool<WrapperPlayServerParticle> particlePacketPool = new PacketPool<>(() -> breakParticle(block));
 
-        // TODO: Find a less hacky way to do this.
-        final List<User>[] users = new List[1];
-        scheduler.runTask(block.getLocation(), o -> {
-            users[0] = getPlayersWhoCanSeeBlock(block);
-        });
-
+        CompletableFuture<List<User>> futureUsers = new CompletableFuture<>();
+        scheduler.runTask(block.getLocation(), o -> futureUsers.complete(getPlayersWhoCanSeeBlock(block)));
 
         scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
-            for (byte i = 1; i <= 8; i++) {
-                byte finalI = i;
-                scheduler.runRegionTaskDelayed(block.getLocation(), do1 -> {
-                    WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
-                    WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
-
-                    breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
-                    breakAnimationPacket.setDestroyStage(finalI);
-
-                    for (User user : users[0]) {
-                        user.sendPacket(breakAnimationPacket);
-
-                        // TODO: Fix a lot of things being created for the particle, even if it is disabled.
-                        if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
-                            user.sendPacket(breakParticlePacket);
-                        }
-                    }
-
-                    animationPacketPool.release(breakAnimationPacket);
-                    particlePacketPool.release(breakParticlePacket);
-
-                    scheduler.runTask(block.getLocation(), do2 -> {
-                        if (finalI == 8 && materialService.isLog(block.getType())) {
-                            block.breakNaturally();
-                        }
-                    });
-                }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
-            }
+            futureUsers.thenAccept(users -> runBlockBreakAnimation(users, block, counter, blockBreakAnimationDelay, animationPacketPool, particlePacketPool));
         }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
+    }
+
+    private void runBlockBreakAnimation(List<User> users, Block block, int counter, long blockBreakAnimationDelay,
+                                        PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool,
+                                        PacketPool<WrapperPlayServerParticle> particlePacketPool) {
+        for (byte i = 1; i <= 8; i++) {
+            byte finalI = i;
+            scheduler.runRegionTaskDelayed(block.getLocation(), do1 -> {
+                sendBreakAnimationPacket(users, finalI, animationPacketPool, particlePacketPool);
+                if (finalI == 8) {
+                    scheduleBlockBreak(block);
+                }
+            }, blockBreakAnimationDelay * i, TimeUnit.MILLISECONDS);
+        }
+
+        scheduler.runRegionTaskDelayed(block.getLocation(), o -> {}, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
+    }
+
+    private void sendBreakAnimationPacket(List<User> users, byte destroyStage,
+                                          PacketPool<WrapperPlayServerBlockBreakAnimation> animationPacketPool,
+                                          PacketPool<WrapperPlayServerParticle> particlePacketPool) {
+        WrapperPlayServerBlockBreakAnimation breakAnimationPacket = animationPacketPool.acquire();
+        WrapperPlayServerParticle breakParticlePacket = particlePacketPool.acquire();
+
+        breakAnimationPacket.setEntityId((int) (Math.random() * Integer.MAX_VALUE));
+        breakAnimationPacket.setDestroyStage(destroyStage);
+
+        for (User user : users) {
+            user.sendPacket(breakAnimationPacket);
+
+            if (settings.getAnimations().getSlowBreak().getParticles().isEnabled()) {
+                user.sendPacket(breakParticlePacket);
+            }
+        }
+
+        animationPacketPool.release(breakAnimationPacket);
+        particlePacketPool.release(breakParticlePacket);
+    }
+
+    private void scheduleBlockBreak(Block block) {
+        scheduler.runTask(block.getLocation(), do2 -> {
+            if (materialService.isLog(block.getType())) {
+                block.breakNaturally();
+            }
+        });
     }
 
     /**

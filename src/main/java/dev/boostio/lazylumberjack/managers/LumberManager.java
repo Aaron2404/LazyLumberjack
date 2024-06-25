@@ -76,8 +76,8 @@ public class LumberManager {
      * @param logs  the list of logs.
      * @param delay the delay between animations.
      */
-    public void processLogs(Player player, List<Block> logs, long delay) {
-        blockService.processLogs(player, logs, delay);
+    public void processLogs(List<Block> logs, long delay) {
+        blockService.processLogs(logs, delay);
     }
 
     /**
