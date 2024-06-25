@@ -22,6 +22,7 @@ import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
@@ -143,7 +144,9 @@ public class MaterialService {
      * @param logMaterial the material of the log.
      */
     public void plantSapling(Block log, Material logMaterial) {
-        log.setType(getSaplingFromLog(logMaterial));
-        log.getWorld().spawnFallingBlock(log.getLocation(), log.getBlockData());
+        Block blockBelow = log.getRelative(BlockFace.DOWN);
+        if (isDirtOrPodzol(blockBelow.getType()) && blockBelow.getType() != Material.AIR) {
+            log.setType(getSaplingFromLog(logMaterial));
+        }
     }
 }

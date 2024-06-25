@@ -158,7 +158,7 @@ public class BlockService {
     private List<User> getPlayersWhoCanSeeBlock(Block block) {
         double viewDistance = Bukkit.getServer().getViewDistance() * 16; // Convert chunk count to block count
 
-            // TODO: Do this async on newer versions using the block method.
+            // TODO: Do this async on newer versions using the block method, although the performance difference with the current method is negligible.
             return block.getLocation().getWorld().getNearbyEntities(block.getLocation(), viewDistance, viewDistance, viewDistance).stream()
                     .filter(entity -> entity instanceof Player)
                     .map(entity -> PacketEvents.getAPI().getPlayerManager().getUser(entity))
@@ -228,7 +228,10 @@ public class BlockService {
     public void plantSaplingsAfterDelay(List<Block> logs, Material logMaterial, long blockBreakAnimationDelay) {
         scheduler.runTaskDelayed(logs.get(0).getLocation(), o -> {
             findLowestY(logs).stream()
-                    .filter(log -> materialService.isDirtOrPodzol(log.getRelative(BlockFace.DOWN).getType()))
+                    .filter(log -> {
+                        Block blockBelow = log.getRelative(BlockFace.DOWN);
+                        return materialService.isDirtOrPodzol(blockBelow.getType()) && blockBelow.getType() != Material.AIR;
+                    })
                     .forEach(log -> materialService.plantSapling(log, logMaterial));
         }, blockBreakAnimationDelay * 8 * logs.size() + 20L, TimeUnit.MILLISECONDS);
     }
