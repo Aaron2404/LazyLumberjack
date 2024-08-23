@@ -24,11 +24,14 @@ import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.protocol.sound.SoundCategory;
+import com.github.retrooper.packetevents.protocol.sound.Sounds;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerParticle;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSoundEffect;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.schedulers.IScheduler;
@@ -36,6 +39,7 @@ import dev.boostio.lazylumberjack.utils.PacketPool;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -180,11 +184,16 @@ public class BlockService {
         CompletableFuture<List<User>> futureUsers = new CompletableFuture<>();
         scheduler.runTask(block.getLocation(), o -> futureUsers.complete(getPlayersWhoCanSeeBlock(block)));
 
-        scheduler.runRegionTaskDelayed(block.getLocation(), o -> {
-            futureUsers.thenAccept(users -> runBlockBreakAnimation(users, block, counter, blockBreakAnimationDelay, animationPacketPool, particlePacketPool));
-        }, blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
+        scheduler.runRegionTaskDelayed(block.getLocation(),
+                                       o ->  futureUsers.thenAccept(users -> runBlockBreakAnimation(users, block, counter, blockBreakAnimationDelay, animationPacketPool, particlePacketPool)),
+                                 blockBreakAnimationDelay * 8 * counter, TimeUnit.MILLISECONDS);
 
-        // TODO: send block break sound
+        scheduler.runRegionTask(block.getLocation(), o -> futureUsers.thenAccept(users -> users.forEach(user -> {
+            com.github.retrooper.packetevents.protocol.sound.Sound sound = Sounds.getByName(Sound.BLOCK_WOOD_BREAK.getKey().asString());
+            WrapperPlayServerSoundEffect soundEffectPacket = new WrapperPlayServerSoundEffect(sound, SoundCategory.BLOCK, new Vector3d(block.getX(), block.getY(), block.getZ()).toVector3i(), 1f, 1f);
+            user.sendPacket(soundEffectPacket);
+        })));
+
         // TODO: send a reset block break animation packet i.e. one with destroy stage 0.
     }
 
