@@ -67,6 +67,8 @@ public class ConfigManager {
 
         settings.getHelpers().setPlaceSapling(plugin.getConfig().getBoolean("helpers.place-sapling", true));
 
+        settings.getMiscs().setAffectDurability(plugin.getConfig().getBoolean("misc.affect-durability", true));
+
         this.settings = settings;
     }
 }

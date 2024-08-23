@@ -27,6 +27,7 @@ public class Settings {
     private Detection detection = new Detection();
     private Animations animations = new Animations();
     private Helpers helpers = new Helpers();
+    private Misc miscs = new Misc();
 
     @Getter
     @Setter
@@ -93,5 +94,11 @@ public class Settings {
     @Setter
     public class Helpers {
         private boolean placeSapling = true;
+    }
+
+    @Getter
+    @Setter
+    public class Misc {
+        private boolean AffectDurability = true;
     }
 }

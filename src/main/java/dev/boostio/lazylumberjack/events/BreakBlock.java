@@ -20,7 +20,6 @@ package dev.boostio.lazylumberjack.events;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.player.User;
 import dev.boostio.lazylumberjack.LazyLumberjack;
 import dev.boostio.lazylumberjack.data.Settings;
 import dev.boostio.lazylumberjack.managers.LumberManager;
@@ -76,6 +75,11 @@ public class BreakBlock implements Listener {
                     logManager.calculateDelay(relatedLogs.size());
 
             logManager.processLogs(relatedLogs, delay);
+
+            if(settings.getMiscs().isAffectDurability()) {
+                handItem.damage(relatedLogs.size(), player);
+            }
+
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && settings.getHelpers().isPlaceSapling()) {
                logManager.plantSaplingsAfterDelay(Arrays.asList(block), logMaterial, delay);
             }

@@ -73,6 +73,10 @@ animations:
           haste: 0.20
           mining-fatigue: 0.10
 
+misc:
+  # Whether the tool used to break the logs should have the durability affected by each log broken.
+  affect-durability: true
+
 helpers:
   # Whether saplings should be placed when breaking a tree.
   # Currently only works with 1.13 and above.
